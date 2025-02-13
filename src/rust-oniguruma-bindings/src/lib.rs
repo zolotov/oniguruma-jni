@@ -11,7 +11,7 @@ use onig::Regex;
 /// So, for exampe `java.lang.System::gc()` becomes `Java_java_lang_System_gc`.
 #[cfg(feature = "jni")]
 mod oniguruma {
-    use core::slice;
+    use core::{slice, str};
     use std::{any::Any, panic::catch_unwind};
 
     use super::*;
@@ -32,11 +32,19 @@ mod oniguruma {
     }
 
     #[no_mangle]
+    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_freeRegex(_env: JNIEnv, _class: JClass, regex_ptr: jlong) {
+        let regex_ptr = regex_ptr as *mut Regex;
+        unsafe {
+            let _ = Box::from_raw(regex_ptr);
+        }
+    }
+
+    #[no_mangle]
     pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_match(
         env: JNIEnv,
         _class: JClass,
         regex_ptr: jlong,
-        string: jbyteArray,
+        text_ptr: jlong,
         byte_offset: jint,
         match_begin_position: jboolean,
         match_begin_string: jboolean,
@@ -44,19 +52,11 @@ mod oniguruma {
         match_string(
             env,
             regex_ptr,
-            string,
+            text_ptr,
             byte_offset,
             match_begin_position,
             match_begin_string,
         )
-    }
-
-    #[no_mangle]
-    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_freeRegex(_env: JNIEnv, _class: JClass, regex_ptr: jlong) {
-        let regex_ptr = regex_ptr as *mut Regex;
-        unsafe {
-            let _ = Box::from_raw(regex_ptr);
-        }
     }
 
     fn create_regex(env: JNIEnv, pattern: jbyteArray) -> jlong {
@@ -86,6 +86,31 @@ mod oniguruma {
         }
     }
 
+    #[no_mangle]
+    pub extern "C" fn Java_com_jetbrains_oniguruma_Oniguruma_createString(mut env: JNIEnv, _class: JClass, utf8_content: jbyteArray) -> jlong {
+        if utf8_content.is_null() {
+           return 0;
+        }
+        let p = unsafe { JByteArray::from_raw(utf8_content) };
+        let auto_elements = unsafe {
+            env.get_array_elements(&p, ReleaseMode::NoCopyBack)
+                .expect("Failed to convert jbyteArray to Vec<u8>")
+        };
+        let ptr = auto_elements.as_ptr();
+        let length = env.get_array_length(&p).unwrap();
+        let slice = unsafe { slice::from_raw_parts(ptr as *const u8, length as usize) };
+        let str: String = std::str::from_utf8(&slice).unwrap().to_string();
+        Box::into_raw(Box::new(str)) as jlong
+    }
+
+    #[no_mangle]
+    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_freeString(_env: JNIEnv, _class: JClass, string_ptr: jlong) {
+        let string_ptr = string_ptr as *mut &str;
+        unsafe {
+            let _ = Box::from_raw(string_ptr);
+        }
+    }
+
     fn downcast_error(e: Box<dyn Any + Send>) -> String {
         if let Some(description) = e.downcast_ref::<String>() {
             description.clone()
@@ -94,33 +119,25 @@ mod oniguruma {
         }
     }
 
-    /// Matches a string against a given Oniguruma regex.
-    /// Returns 1 if the string matches, 0 otherwise.
     #[no_mangle]
     pub extern "C" fn match_string(
-        mut env: JNIEnv,
+        env: JNIEnv,
         regex_ptr: jlong,
-        text: jbyteArray,
+        string_ptr: jlong,
         start_offset: jint,
         match_begin_position: jboolean,
         match_begin_string: jboolean,
     ) -> jintArray {
         let regex_ptr = regex_ptr as *mut Regex;
+        let string_ptr = string_ptr as *mut String;
 
-        if regex_ptr.is_null() || text.is_null() {
+        if regex_ptr.is_null() || string_ptr.is_null() {
             return std::ptr::null_mut();
         }
 
-        let p = unsafe { JByteArray::from_raw(text) };
-        let auto_elements = unsafe {
-            env.get_array_elements(&p, ReleaseMode::NoCopyBack)
-                .expect("Failed to convert jbyteArray to Vec<u8>")
-        };
-        let ptr = auto_elements.as_ptr();
-        let length = env.get_array_length(&p).unwrap();
-        let slice = unsafe { slice::from_raw_parts(ptr as *const u8, length as usize) };
-        let str = unsafe { std::str::from_utf8_unchecked(&slice) };
         let regex = unsafe { &*regex_ptr };
+        let str: &String = unsafe { &*string_ptr };
+
         let mut options = SearchOptions::SEARCH_OPTION_NONE;
         if match_begin_position == 0 {
             options |= unsafe {
@@ -132,7 +149,6 @@ mod oniguruma {
                 SearchOptions::from_bits_unchecked(onig_sys::ONIG_OPTION_NOT_BEGIN_STRING)
             };
         }
-        //        options |= unsafe { SearchOptions::from_bits_unchecked(onig_sys::ONIG_OPTION_CAPTURE_GROUP) };
         let mut region = Region::new();
         match regex.search_with_options(
             str,

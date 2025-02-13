@@ -129,17 +129,23 @@ class OnigurumaTest {
             matchBeginString: Boolean = true
         ): List<Capture> {
             val stringBytes = string.encodeToByteArray()
-            return oniguruma.match(
-                regexPtr,
-                stringBytes,
-                byteOffsetByCharOffset(string, startCharOffset),
-                matchBeginString = matchBeginString,
-                matchBeginPosition = matchBeginPosition
-            )?.asSequence()?.windowed(size = 2, step = 2, partialWindows = false) { (first, second) ->
-                val start = stringBytes.decodeToString(0, first).length
-                val end = start + stringBytes.decodeToString(first, second).length
-                Capture(start, end)
-            }?.toList() ?: emptyList()
+            val textPtr = oniguruma.createString(stringBytes)
+            return try {
+                oniguruma.match(
+                    regexPtr = regexPtr,
+                    textPtr = textPtr,
+                    byteOffset = byteOffsetByCharOffset(string, startCharOffset),
+                    matchBeginString = matchBeginString,
+                    matchBeginPosition = matchBeginPosition
+                )?.asSequence()?.windowed(size = 2, step = 2, partialWindows = false) { (first, second) ->
+                    val start = stringBytes.decodeToString(0, first).length
+                    val end = start + stringBytes.decodeToString(first, second).length
+                    Capture(start, end)
+                }?.toList() ?: emptyList()
+            }
+            finally {
+                oniguruma.freeString(textPtr)
+            }
         }
     }
 

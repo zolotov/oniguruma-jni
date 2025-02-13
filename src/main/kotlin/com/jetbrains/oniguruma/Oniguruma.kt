@@ -10,7 +10,7 @@ class Oniguruma private constructor() {
 
     external fun match(
         regexPtr: Long,
-        text: ByteArray,
+        textPtr: Long,
         byteOffset: Int,
         matchBeginPosition: Boolean,
         matchBeginString: Boolean,
@@ -19,4 +19,8 @@ class Oniguruma private constructor() {
     external fun createRegex(pattern: ByteArray): Long
 
     external fun freeRegex(regexPtr: Long)
+
+    external fun createString(utf8Content: ByteArray): Long
+
+    external fun freeString(textPtr: Long)
 }
