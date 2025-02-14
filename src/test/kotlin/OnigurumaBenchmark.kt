@@ -21,8 +21,8 @@ open class OnigurumaBenchmark {
 
     @TearDown(Level.Trial)
     fun tearDown() {
-        oniguruma.freeRegex(regexPtr);
-        oniguruma.freeString(stringPtr);
+        oniguruma.freeRegex(regexPtr)
+        oniguruma.freeString(stringPtr)
     }
 
     @Benchmark
@@ -33,6 +33,6 @@ open class OnigurumaBenchmark {
             byteOffset = 0,
             matchBeginPosition = true,
             matchBeginString = true
-        );
+        )
     }
 }
