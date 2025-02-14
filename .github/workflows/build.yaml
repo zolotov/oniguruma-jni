@@ -7,7 +7,7 @@ on:
 
 jobs:
   # TODO: add support for more OS
-  macos:
+  build:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout sources
