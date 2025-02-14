@@ -31,10 +31,11 @@ java {
     withSourcesJar()
 }
 
-val compileRustBindingsTaskByPlatform = listOf(buildPlatform()).associateWith {
-    tasks.register<CompileRustTask>("compileNative") {
+val compileRustBindingsTaskByPlatform = listOf(buildPlatform()).associateWith { platform ->
+    tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
         crateName = "oniguruma-jni"
         rustProfile = "release"
+        rustTarget = platform
         nativeDirectory = layout.projectDirectory.dir("../native")
     }
 }

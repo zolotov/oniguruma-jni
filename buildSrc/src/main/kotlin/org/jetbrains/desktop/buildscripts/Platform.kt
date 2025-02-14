@@ -1,8 +1,12 @@
 package org.jetbrains.desktop.buildscripts
 
+import org.gradle.api.tasks.Input
+import org.gradle.internal.impldep.kotlinx.serialization.Serializable
+
+@Serializable
 data class Platform(
-    val os: Os,
-    val arch: Arch,
+    @get:Input val os: Os,
+    @get:Input val arch: Arch,
 )
 
 enum class Os(val normalizedName: String) {
