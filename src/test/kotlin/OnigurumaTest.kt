@@ -1,5 +1,6 @@
 package com.jetbrains.oniguruma
 
+import me.zolotov.oniguruma.Oniguruma
 import kotlin.Char.Companion.MIN_HIGH_SURROGATE
 import kotlin.Char.Companion.MIN_LOW_SURROGATE
 import kotlin.test.Test

@@ -23,7 +23,7 @@ mod oniguruma {
     use onig::{RegexOptions, Region, SearchOptions, Syntax};
 
     #[no_mangle]
-    pub extern "C" fn Java_com_jetbrains_oniguruma_Oniguruma_createRegex(
+    pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createRegex(
         env: JNIEnv,
         _class: JClass,
         pattern: jbyteArray,
@@ -32,7 +32,7 @@ mod oniguruma {
     }
 
     #[no_mangle]
-    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_freeRegex(_env: JNIEnv, _class: JClass, regex_ptr: jlong) {
+    pub extern "system" fn Java_me_zolotov_oniguruma_Oniguruma_freeRegex(_env: JNIEnv, _class: JClass, regex_ptr: jlong) {
         let regex_ptr = regex_ptr as *mut Regex;
         unsafe {
             let _ = Box::from_raw(regex_ptr);
@@ -40,7 +40,7 @@ mod oniguruma {
     }
 
     #[no_mangle]
-    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_match(
+    pub extern "system" fn Java_me_zolotov_oniguruma_Oniguruma_match(
         env: JNIEnv,
         _class: JClass,
         regex_ptr: jlong,
@@ -87,7 +87,7 @@ mod oniguruma {
     }
 
     #[no_mangle]
-    pub extern "C" fn Java_com_jetbrains_oniguruma_Oniguruma_createString(mut env: JNIEnv, _class: JClass, utf8_content: jbyteArray) -> jlong {
+    pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createString(mut env: JNIEnv, _class: JClass, utf8_content: jbyteArray) -> jlong {
         if utf8_content.is_null() {
            return 0;
         }
@@ -104,7 +104,7 @@ mod oniguruma {
     }
 
     #[no_mangle]
-    pub extern "system" fn Java_com_jetbrains_oniguruma_Oniguruma_freeString(_env: JNIEnv, _class: JClass, string_ptr: jlong) {
+    pub extern "system" fn Java_me_zolotov_oniguruma_Oniguruma_freeString(_env: JNIEnv, _class: JClass, string_ptr: jlong) {
         let string_ptr = string_ptr as *mut &str;
         unsafe {
             let _ = Box::from_raw(string_ptr);
