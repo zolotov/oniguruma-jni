@@ -8,7 +8,7 @@ on:
 jobs:
   # TODO: add support for more OS
   macos:
-    runs-on: macos-14
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4

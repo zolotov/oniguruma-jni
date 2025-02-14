@@ -64,7 +64,7 @@ abstract class CompileRustTask @Inject constructor(
 internal fun ExecOperations.findCommand(command: String): Path? {
     val output = ByteArrayOutputStream()
     val result = exec {
-        val cmd = when (buildOs()) {
+        val cmd = when (currentOs()) {
             Os.MACOS, Os.LINUX -> listOf("/bin/sh", "-c", "command -v $command")
             Os.WINDOWS -> listOf("cmd.exe", "/c", "where", command)
         }

@@ -1,5 +1,8 @@
+import org.jetbrains.desktop.buildscripts.Arch
 import org.jetbrains.desktop.buildscripts.CompileRustTask
-import org.jetbrains.desktop.buildscripts.buildPlatform
+import org.jetbrains.desktop.buildscripts.Os
+import org.jetbrains.desktop.buildscripts.Platform
+import org.jetbrains.desktop.buildscripts.currentPlatform
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -31,12 +34,19 @@ java {
     withSourcesJar()
 }
 
-val compileRustBindingsTaskByPlatform = listOf(buildPlatform()).associateWith { platform ->
+val currentPlatform = currentPlatform()
+
+val compileRustBindingsTaskByPlatform = listOf(
+    Platform(Os.MACOS, Arch.aarch64),
+    Platform(Os.LINUX, Arch.x86_64)
+).associateWith { platform ->
     tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
+        val isOnCI = providers.environmentVariable("CI").orNull.toBoolean()
         crateName = "oniguruma-jni"
         rustProfile = "release"
         rustTarget = platform
         nativeDirectory = layout.projectDirectory.dir("../native")
+        enabled = isOnCI || currentPlatform == platform
     }
 }
 
