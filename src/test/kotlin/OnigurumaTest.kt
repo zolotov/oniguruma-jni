@@ -113,7 +113,7 @@ class OnigurumaTest {
     }
 
     private fun withMatcher(s: String, block: (Matcher) -> Unit) {
-        val oniguruma = Oniguruma.instance
+        val oniguruma = Oniguruma.createFromResources()
         val regex = oniguruma.createRegex(s.encodeToByteArray())
         try {
             block(Matcher(oniguruma, regex))

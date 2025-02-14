@@ -1,11 +1,17 @@
 package me.zolotov.oniguruma
 
+import java.nio.file.Path
+
 class Oniguruma private constructor() {
     companion object {
-        val instance: Oniguruma by lazy {
-//            System.loadLibrary("librust_oniguruma_bindings")
-            System.load("/Users/zolotov/dev/oniguruma-jni/src/rust-oniguruma-bindings/target/release/librust_oniguruma_bindings.dylib")
-            Oniguruma()
+        fun createFromResources(): Oniguruma {
+            OnigurumaLoader.loadFromResources()
+            return Oniguruma()
+        }
+
+        fun createFromFile(path: Path): Oniguruma {
+            OnigurumaLoader.loadFromFile(path)
+            return Oniguruma()
         }
     }
 

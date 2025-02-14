@@ -14,7 +14,7 @@ open class OnigurumaBenchmark {
 
     @Setup(Level.Trial)
     fun setup() {
-        oniguruma = Oniguruma.instance;
+        oniguruma = Oniguruma.createFromResources()
         regexPtr = oniguruma.createRegex("[0-9]+".encodeToByteArray())
         stringPtr = oniguruma.createString("\uD83D\uDEA7\uD83D\uDEA7\uD83D\uDEA7 привет, мир 123!".encodeToByteArray())
     }
