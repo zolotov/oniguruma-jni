@@ -57,7 +57,4 @@ sourceSets {
     main {
         resources.srcDirs(generateNativeResources.map { it.destinationDir })
     }
-    test {
-        resources.srcDirs(generateNativeResources.map { it.destinationDir })
-    }
 }
