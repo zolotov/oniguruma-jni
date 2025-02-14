@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["oniguruma-jni"]
+
+[profile.dev]
+
+[profile.release]
+lto = true
+strip = "symbols"
+
+[profile.bench]
+inherits = "release"
+strip = false

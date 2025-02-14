@@ -1,0 +1,32 @@
+package org.jetbrains.desktop.buildscripts
+
+data class Platform(
+    val os: Os,
+    val arch: Arch,
+)
+
+enum class Os(val normalizedName: String) {
+    LINUX("linux"), MACOS("macos"), WINDOWS("windows");
+}
+
+enum class Arch {
+    aarch64, x86_64
+}
+
+fun buildOs(): Os  {
+    val os = System.getProperty("os.name").lowercase()
+    return when {
+        os.contains("win") -> Os.WINDOWS
+        os.contains("mac") -> Os.MACOS
+        os.contains("nux") || os.contains("nix") || os.contains("aix") -> Os.LINUX
+        else -> error("unsupported os '$os'")
+    }
+}
+
+fun buildArch(): Arch = when (val arch = System.getProperty("os.arch").lowercase()) {
+    "x86_64", "amd64", "x64" -> Arch.x86_64
+    "arm64", "aarch64" -> Arch.aarch64
+    else -> error("unsupported arch '$arch'")
+}
+
+fun buildPlatform(): Platform = Platform(buildOs(), buildArch())

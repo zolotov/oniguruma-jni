@@ -15,7 +15,7 @@ internal object OnigurumaLoader {
     @Synchronized
     fun loadFromResources() {
         if (!loaded) {
-            val libraryName = System.mapLibraryName("rust_oniguruma_bindings")
+            val libraryName = System.mapLibraryName("oniguruma_jni")
             val resourcePath = determineResourcePath(libraryName)
             val extractedLib = extractLibraryToTemporaryDirectory(resourcePath, libraryName)
             System.load(extractedLib.absolutePathString())
@@ -58,7 +58,7 @@ internal object OnigurumaLoader {
 
     @OptIn(ExperimentalPathApi::class)
     private fun extractLibraryToTemporaryDirectory(resourcePath: String, libraryName: String): Path {
-        val tempDirectory = Files.createTempDirectory("oniguruma-jni")
+        val tempDirectory = Files.createTempDirectory("oniguruma_jni")
         val libraryFile = tempDirectory.resolve(libraryName)
 
         javaClass.getResourceAsStream(resourcePath)?.use { input ->

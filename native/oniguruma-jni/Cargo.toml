@@ -1,5 +1,5 @@
 [package]
-name = "rust-oniguruma-bindings"
+name = "oniguruma-jni"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,6 +10,7 @@ jni = { version = "0.21.1", optional = true }
 
 [lib]
 crate-type = ["rlib", "cdylib"]
+name = "oniguruma_jni"
 
 [features]
 default = ["jni"]
