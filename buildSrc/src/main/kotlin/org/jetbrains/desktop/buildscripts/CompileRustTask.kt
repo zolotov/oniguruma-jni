@@ -119,7 +119,7 @@ private fun ExecOperations.compileRust(
 
 private fun buildPlatformRustTarget(platform: Platform): String {
     val osPart = when (platform.os) {
-        Os.WINDOWS -> "windows-msvc"
+        Os.WINDOWS -> "pc-windows-msvc"
         Os.MACOS -> "apple-darwin"
         Os.LINUX -> "unknown-linux-gnu"
     }
