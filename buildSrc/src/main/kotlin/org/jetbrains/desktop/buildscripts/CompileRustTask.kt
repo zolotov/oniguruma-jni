@@ -32,7 +32,7 @@ abstract class CompileRustTask @Inject constructor(
 
     @Internal
     val outputDirectory =
-        projectLayout.buildDirectory.dir(providerFactory.provider { "target/${rustTarget.get()}/${rustProfile.get()}" })
+        projectLayout.buildDirectory.dir(providerFactory.provider { "target/${buildPlatformRustTarget(rustTarget.get())}/${rustProfile.get()}" })
 
     @get:OutputFile
     val libraryFile = providerFactory.provider {
@@ -40,7 +40,7 @@ abstract class CompileRustTask @Inject constructor(
         val target = rustTarget.get()
         val name = crateName.get().replace('-', '_')
         when (target.os) {
-            Os.LINUX -> dir.resolve("$name.so") // FIXME: verify
+            Os.LINUX -> dir.resolve("lib$name.so")
             Os.MACOS -> dir.resolve("lib$name.dylib")
             Os.WINDOWS -> dir.resolve("lib_$name.dll") // FIXME: verify
         }
@@ -48,7 +48,6 @@ abstract class CompileRustTask @Inject constructor(
 
     @TaskAction
     fun compile() {
-        Thread.sleep(10000)
         execOperations.compileRust(
             nativeDirectory.get().asFile.toPath(),
             crateName.get(),
