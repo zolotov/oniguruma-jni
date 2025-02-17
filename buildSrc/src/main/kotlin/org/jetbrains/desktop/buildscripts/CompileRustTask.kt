@@ -22,6 +22,9 @@ abstract class CompileRustTask @Inject constructor(
     val nativeDirectory = objectFactory.directoryProperty()
 
     @get:Input
+    val crossCompile = objectFactory.property<Boolean>()
+
+    @get:Input
     val crateName = objectFactory.property<String>()
 
     @get:Nested
@@ -49,6 +52,7 @@ abstract class CompileRustTask @Inject constructor(
     @TaskAction
     fun compile() {
         execOperations.compileRust(
+            crossCompile.get().or(false),
             nativeDirectory.get().asFile.toPath(),
             crateName.get(),
             buildPlatformRustTarget(rustTarget.get()),
@@ -83,6 +87,7 @@ internal fun ExecOperations.findCommand(command: String): Path? {
 
 
 private fun ExecOperations.compileRust(
+    crossCompile: Boolean,
     nativeDirectory: Path,
     crateName: String,
     rustTarget: String,
@@ -91,7 +96,8 @@ private fun ExecOperations.compileRust(
 ) {
     exec {
         workingDir = nativeDirectory.toFile()
-        commandLine(findCommand("cross"), "build",
+        val command = if (crossCompile) "cross" else "cargo"
+        commandLine(findCommand(command), "build",
             "--package=$crateName",
             "--profile=$rustProfile",
             "--target=$rustTarget",
@@ -113,7 +119,7 @@ private fun ExecOperations.compileRust(
 
 private fun buildPlatformRustTarget(platform: Platform): String {
     val osPart = when (platform.os) {
-        Os.WINDOWS -> "pc-windows-gnu"
+        Os.WINDOWS -> "pc-windows-msvc"
         Os.MACOS -> "apple-darwin"
         Os.LINUX -> "unknown-linux-gnu"
     }

@@ -38,12 +38,16 @@ val currentPlatform = currentPlatform()
 
 val compileRustBindingsTaskByPlatform = listOf(
     Platform(Os.MACOS, Arch.aarch64),
+    Platform(Os.MACOS, Arch.x86_64),
+    Platform(Os.WINDOWS, Arch.aarch64),
     Platform(Os.WINDOWS, Arch.x86_64),
+    Platform(Os.LINUX, Arch.aarch64),
     Platform(Os.LINUX, Arch.x86_64)
 ).associateWith { platform ->
     tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
         val isOnCI = providers.environmentVariable("CI").orNull.toBoolean()
         val isTestMode = providers.environmentVariable("TEST_MODE").orNull.toBoolean()
+        crossCompile = currentPlatform != platform
         crateName = "oniguruma-jni"
         rustProfile = "release"
         rustTarget = platform
