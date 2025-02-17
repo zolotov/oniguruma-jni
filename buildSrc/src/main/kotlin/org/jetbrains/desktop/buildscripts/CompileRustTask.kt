@@ -92,7 +92,7 @@ private fun ExecOperations.compileRust(
 ) {
     exec {
         workingDir = nativeDirectory.toFile()
-        commandLine(findCommand("cargo"), "build",
+        commandLine(findCommand("cross"), "build",
             "--package=$crateName",
             "--profile=$rustProfile",
             "--target=$rustTarget",

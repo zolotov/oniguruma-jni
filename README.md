@@ -76,6 +76,7 @@ try {
 2. Ensure you have the following prerequisites:
     - JDK 8 or later
     - Rust toolchain
+    - Cross tool installed: `cargo install cross`
 3. Build the project using Gradle:
    ```bash
    ./gradlew build
