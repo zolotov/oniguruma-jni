@@ -7,19 +7,24 @@ on:
     tags:
       - "**"
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-14, windows-2022]
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install cross
+      - name: Setup Rust
         run: cargo install cross
 
       - name: Setup Java
@@ -35,3 +40,10 @@ jobs:
         env:
           TEST_MODE: "true"
         run: ./gradlew test
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        with:
+          name: ${{ matrix.os }} Tests
+          path: oniguruma-jni/build/test-results/test/*.xml
+          reporter: java-junit

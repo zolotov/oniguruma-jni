@@ -13,7 +13,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install cross
+      - name: Setup Rust
         run: cargo install cross
 
       - name: Install Dependencies for macOS
