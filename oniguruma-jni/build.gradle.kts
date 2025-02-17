@@ -42,11 +42,12 @@ val compileRustBindingsTaskByPlatform = listOf(
 ).associateWith { platform ->
     tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
         val isOnCI = providers.environmentVariable("CI").orNull.toBoolean()
+        val isTestMode = providers.environmentVariable("TEST_MODE").orNull.toBoolean()
         crateName = "oniguruma-jni"
         rustProfile = "release"
         rustTarget = platform
         nativeDirectory = layout.projectDirectory.dir("../native")
-        enabled = isOnCI || currentPlatform == platform
+        enabled = (isOnCI && !isTestMode) || currentPlatform == platform
     }
 }
 
