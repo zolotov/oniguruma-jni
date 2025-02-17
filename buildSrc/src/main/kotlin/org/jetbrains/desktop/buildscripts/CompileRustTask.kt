@@ -48,6 +48,7 @@ abstract class CompileRustTask @Inject constructor(
 
     @TaskAction
     fun compile() {
+        Thread.sleep(10000)
         execOperations.compileRust(
             nativeDirectory.get().asFile.toPath(),
             crateName.get(),
@@ -113,7 +114,7 @@ private fun ExecOperations.compileRust(
 
 private fun buildPlatformRustTarget(platform: Platform): String {
     val osPart = when (platform.os) {
-        Os.WINDOWS -> "windows-msvc"
+        Os.WINDOWS -> "pc-windows-gnu"
         Os.MACOS -> "apple-darwin"
         Os.LINUX -> "unknown-linux-gnu"
     }

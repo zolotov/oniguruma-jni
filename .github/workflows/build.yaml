@@ -12,12 +12,39 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+#      - name: Add macOS_x86_64 target
+#        run: rustup target add x86_64-apple-darwin
+#
+#      - name: Add Linux_x86_64 target
+#        run: rustup target add x86_64-unknown-linux-gnu
+#
+#      - name: Add Windows_x86_64 target
+#        run: rustup target add x86_64-pc-windows-gnu
+
+      - name: Add macOS_aarch64 target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Add Linux_aarch64 target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+#      - name: Add Windows_aarch64 target
+#        run: rustup target add aarch64-pc-windows-gnu
+
+      - name: Install Dependencies for macOS
+        run: sudo apt-get install -y clang
+
+#      - name: Install Dependencies for Windows
+#        run: sudo apt-get install -y mingw-w64
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 21
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
       - name: Build with Gradle
         run: ./gradlew build
