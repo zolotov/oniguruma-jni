@@ -38,6 +38,7 @@ val currentPlatform = currentPlatform()
 
 val compileRustBindingsTaskByPlatform = listOf(
     Platform(Os.MACOS, Arch.aarch64),
+    Platform(Os.WINDOWS, Arch.x86_64),
     Platform(Os.LINUX, Arch.x86_64)
 ).associateWith { platform ->
     tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
