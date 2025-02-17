@@ -42,7 +42,7 @@ abstract class CompileRustTask @Inject constructor(
         when (target.os) {
             Os.LINUX -> dir.resolve("lib$name.so")
             Os.MACOS -> dir.resolve("lib$name.dylib")
-            Os.WINDOWS -> dir.resolve("lib_$name.dll") // FIXME: verify
+            Os.WINDOWS -> dir.resolve("$name.dll")
         }
     }
 
