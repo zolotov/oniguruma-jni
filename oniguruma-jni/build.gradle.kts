@@ -1,8 +1,4 @@
-import org.jetbrains.desktop.buildscripts.Arch
-import org.jetbrains.desktop.buildscripts.CompileRustTask
-import org.jetbrains.desktop.buildscripts.Os
-import org.jetbrains.desktop.buildscripts.Platform
-import org.jetbrains.desktop.buildscripts.currentPlatform
+import org.jetbrains.desktop.buildscripts.*
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -44,15 +40,16 @@ val compileRustBindingsTaskByPlatform = listOf(
     Platform(Os.LINUX, Arch.aarch64),
     Platform(Os.LINUX, Arch.x86_64)
 ).associateWith { platform ->
-    tasks.register<CompileRustTask>("compileNative-${platform.os.normalizedName}-${platform.arch}") {
-        val isOnCI = providers.environmentVariable("CI").orNull.toBoolean()
-        val isTestMode = providers.environmentVariable("TEST_MODE").orNull.toBoolean()
-        crossCompile = currentPlatform != platform
+    tasks.register<CompileRustTask>("compileNative-${buildPlatformRustTarget(platform)}") {
         crateName = "oniguruma-jni"
         rustProfile = "release"
         rustTarget = platform
         nativeDirectory = layout.projectDirectory.dir("../native")
-        enabled = (isOnCI && !isTestMode) || currentPlatform == platform
+        enabled = when (providers.environmentVariable("NATIVE_BUILD_MODE").orNull) {
+            "skip" -> false
+            "all" -> true
+            else -> currentPlatform == platform
+        }
     }
 }
 
