@@ -75,6 +75,11 @@ sourceSets {
     }
 }
 
+// Configure the sourcesJar task to exclude resources
+tasks.named<Jar>("sourcesJar") {
+    exclude("**/native")
+}
+
 java {
     withSourcesJar()
 }
