@@ -3,6 +3,8 @@ import org.jetbrains.desktop.buildscripts.*
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.jmh)
+    id("maven-publish")
+    id("signing")
 }
 
 group = "me.zolotov.oniguruma"
@@ -71,4 +73,65 @@ sourceSets {
     main {
         resources.srcDirs(generateNativeResources.map { it.destinationDir })
     }
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+
+            pom {
+                name.set("Alexander Zolotov")
+                description.set("""
+                    A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
+                    This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
+                """.trimIndent())
+                url.set("https://github.com/zolotov/oniguruma-jni")
+
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("zolotov")
+                        name.set("Alexander Zolotov")
+                        email.set("goldifit@gmail.com")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/zolotov/oniguruma-jni.git")
+                    developerConnection.set("scm:git:ssh://github.com/zolotov/oniguruma-jni.git")
+                    url.set("https://github.com/zolotov/oniguruma-jni")
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.properties["ossrhUsername"] as String? ?: System.getenv("OSSRH_USERNAME")
+                password = project.properties["ossrhPassword"] as String? ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    val signingKey = project.properties["signing.key"] as String?
+    val signingPassword = project.properties["signing.password"] as String?
+
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["maven"])
 }
