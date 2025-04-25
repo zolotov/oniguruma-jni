@@ -1,10 +1,13 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.desktop.buildscripts.*
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.jmh)
-    id("maven-publish")
-    id("signing")
+    id("com.vanniktech.maven.publish") version "0.31.0"
+    id("org.jetbrains.dokka") version "2.0.0"
 }
 
 group = "me.zolotov.oniguruma"
@@ -80,63 +83,41 @@ tasks.named<Jar>("sourcesJar") {
     exclude("**/native")
 }
 
-java {
-    withSourcesJar()
-}
+mavenPublishing {
+    configure(KotlinJvm(
+        javadocJar = JavadocJar.Dokka("dokkaHtml"),
+        sourcesJar = true
+    ))
+    publishToMavenCentral(SonatypeHost.DEFAULT)
+    signAllPublications()
+    pom {
+        name.set("Oniguruma JNI")
+        description.set("""
+            A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
+            This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
+        """.trimIndent())
+        url.set("https://github.com/zolotov/oniguruma-jni")
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
 
-            pom {
+        developers {
+            developer {
+                id.set("zolotov")
                 name.set("Alexander Zolotov")
-                description.set("""
-                    A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
-                    This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
-                """.trimIndent())
-                url.set("https://github.com/zolotov/oniguruma-jni")
-
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-
-                developers {
-                    developer {
-                        id.set("zolotov")
-                        name.set("Alexander Zolotov")
-                        email.set("goldifit@gmail.com")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:git://github.com/zolotov/oniguruma-jni.git")
-                    developerConnection.set("scm:git:ssh://github.com/zolotov/oniguruma-jni.git")
-                    url.set("https://github.com/zolotov/oniguruma-jni")
-                }
+                url.set("https://github.com/username/")
             }
         }
-    }
 
-    repositories {
-        maven {
-            name = "OSSRH"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = project.properties["ossrhUsername"] as String? ?: System.getenv("OSSRH_USERNAME")
-                password = project.properties["ossrhPassword"] as String? ?: System.getenv("OSSRH_PASSWORD")
-            }
+        scm {
+            url.set("https://github.com/zolotov/oniguruma-jni")
+            connection.set("scm:git:git://github.com/zolotov/oniguruma-jni.git")
+            developerConnection.set("scm:git:ssh://github.com/zolotov/oniguruma-jni.git")
         }
     }
-}
-
-signing {
-    val signingKey = project.properties["signing.key"] as String?
-    val signingPassword = project.properties["signing.password"] as String?
-
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications["maven"])
 }
