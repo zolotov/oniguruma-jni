@@ -21,7 +21,6 @@ use onig::{RegexOptions, Region, SearchOptions, Syntax};
 use onig_sys::{ONIG_OPTION_NOT_BEGIN_POSITION, ONIG_OPTION_NOT_BEGIN_STRING};
 use std::{
     any::Any,
-    iter,
     panic::{catch_unwind, RefUnwindSafe},
     ptr, slice,
     str::{self, Utf8Error},
