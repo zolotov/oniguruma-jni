@@ -9,12 +9,14 @@ data class Platform(
     @get:Input val arch: Arch,
 )
 
+val Platform.normalizedName get(): String = "${os.normalizedName}-${arch.normalizedName}"
+
 enum class Os(val normalizedName: String) {
     LINUX("linux"), MACOS("macos"), WINDOWS("windows");
 }
 
-enum class Arch {
-    aarch64, x86_64
+enum class Arch(val normalizedName: String) {
+    aarch64("aarch64"), x86_64("x86_64")
 }
 
 fun currentOs(): Os  {

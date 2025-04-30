@@ -2,6 +2,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.desktop.buildscripts.*
+import org.jetbrains.desktop.buildscripts.normalizedName
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -63,7 +64,7 @@ val generateNativeResources = tasks.register<Sync>("generateResourcesDir") {
 
     compileRustBindingsTaskByPlatform.forEach { (platform, task) ->
         from(task.map { it.libraryFile }) {
-            into("native/${platform.os.normalizedName}-${platform.arch}")
+            into("native/${platform.normalizedName}")
         }
     }
 }
