@@ -112,6 +112,15 @@ class OnigurumaTest {
         }
     }
 
+    @Test
+    fun matchNonSequentGroups() {
+        withMatcher("^\\s*(?i:(ONBUILD)\\s+)?(?i:(ADD|ARG|CMD|COPY|ENTRYPOINT|ENV|EXPOSE|FROM|HEALTHCHECK|LABEL|MAINTAINER|RUN|SHELL|STOPSIGNAL|USER|VOLUME|WORKDIR))\\s") { matcher ->
+            val string = "RUN find . -maxdepth 1 -type f -name \".*\" -exec rm \"{}\" \\;"
+            val match = matcher.match(string, 0)
+            assertEquals(listOf(Capture(0, 4), Capture(-1, -1), Capture(0, 3)), match)
+        }
+    }
+
     private fun withMatcher(s: String, block: (Matcher) -> Unit) {
         val oniguruma = Oniguruma.createFromResources()
         val regex = oniguruma.createRegex(s.encodeToByteArray())
@@ -139,9 +148,14 @@ class OnigurumaTest {
                     matchBeginString = matchBeginString,
                     matchBeginPosition = matchBeginPosition
                 )?.asSequence()?.windowed(size = 2, step = 2, partialWindows = false) { (first, second) ->
-                    val start = stringBytes.decodeToString(0, first).length
-                    val end = start + stringBytes.decodeToString(first, second).length
-                    Capture(start, end)
+                    if (first == -1) {
+                        Capture(-1, -1)
+                    }
+                    else {
+                        val start = stringBytes.decodeToString(0, first).length
+                        val end = start + stringBytes.decodeToString(first, second).length
+                        Capture(start, end)
+                    }
                 }?.toList() ?: emptyList()
             }
             finally {

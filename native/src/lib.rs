@@ -175,14 +175,16 @@ fn match_pattern(
         Some(&mut region),
     );
     if matched.is_some() {
+        let mut iterator = region.iter();
+
         // Constructing a Vec containing all the start and end offsets one after the other.
-        // Unfortunately, Region iterator will emit only captured groups. We need to tail
-        // the iterator with (-1, -1) pairs up to region.len() times
-        let offsets = region
-            .iter()
-            .map(|(s, e)| (s as i32, e as i32))
-            .chain(iter::repeat((-1, -1)))
-            .take(region.len())
+        //
+        // Region iterator can return None, but we still need to iterate region.len() times
+        // not matter what. This is not ideiomatic API, but oh well.
+        let offsets = (0..region.len())
+            .map(|_| iterator.next())
+            .map(|i| i.map(|(s, e)| (s as i32, e as i32)))
+            .map(|i| i.unwrap_or((-1, -1)))
             .flat_map(|(s, e)| [s, e])
             .collect::<Vec<_>>();
         Ok(create_jni_int_array(env, &offsets)?.into_raw())
