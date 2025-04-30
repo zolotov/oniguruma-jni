@@ -84,6 +84,61 @@ tasks.named<Jar>("sourcesJar") {
     exclude("**/native")
 }
 
+val slimJar = tasks.register<Jar>("slimJar") {
+    group = "build"
+    description = "Assembles a jar archive without native libraries"
+
+    archiveClassifier.set("slim")
+    from(sourceSets.main.get().output.classesDirs)
+
+    from(sourceSets.main.get().output.resourcesDir!!) {
+        exclude("**/native")
+    }
+
+    manifest {
+        from(tasks.jar.get().manifest)
+    }
+    dependsOn(tasks.processResources)
+}
+
+val PACKAGING_ATTRIBUTE = Attribute.of("me.zolotov.oniguruma.packaging", String::class.java)
+
+configurations {
+    apiElements {
+        attributes {
+            attribute(PACKAGING_ATTRIBUTE, "full")
+        }
+    }
+
+    runtimeElements {
+        attributes {
+            attribute(PACKAGING_ATTRIBUTE, "full")
+        }
+    }
+}
+
+val javaComponent = components.findByName("java") as AdhocComponentWithVariants
+javaComponent.addVariantsFromConfiguration(configurations.consumable("slim") {
+    attributes {
+        attribute(PACKAGING_ATTRIBUTE, "slim")
+    }
+    outgoing { artifact(slimJar) }
+}.get()) {}
+
+compileRustBindingsTaskByPlatform.filterValues { it.get().isEnabled }.forEach { (platform, task) ->
+    val conf = configurations.consumable("bindings_${platform.normalizedName}") {
+        attributes {
+            attribute(Attribute.of("me.zolotov.oniguruma.platform", String::class.java), platform.normalizedName)
+        }
+        outgoing {
+            artifact(task.map { it.libraryFile }) {
+                classifier = platform.normalizedName
+            }
+        }
+    }.get()
+    javaComponent.addVariantsFromConfiguration(conf) { }
+}
+
 mavenPublishing {
     configure(KotlinJvm(
         javadocJar = JavadocJar.Dokka("dokkaHtml"),
