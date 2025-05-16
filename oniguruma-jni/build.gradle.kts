@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.jmh)
     id("com.vanniktech.maven.publish") version "0.32.0"
     id("org.jetbrains.dokka") version "2.0.0"
+    id("org.hildan.github.changelog") version "2.2.0"
+    id("ru.vyarus.github-info") version "2.0.0"
 }
 
 group = "me.zolotov.oniguruma"
@@ -16,6 +18,16 @@ description = """
     A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
     This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
 """.trimIndent()
+
+github {
+    user = "zolotov"
+    license = "Apache 2.0"
+}
+
+changelog {
+    githubUser = github.user
+    futureVersionTag = project.version.toString()
+}
 
 repositories {
     mavenCentral()
