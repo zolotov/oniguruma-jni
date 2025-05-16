@@ -34,6 +34,8 @@ jobs:
 
       - name: Release
         uses: joffrey-bion/gradle-library-release-action@v2
+        env:
+          NATIVE_BUILD_MODE: "skip"
         with:
           version: ${{ inputs.version }}
           gpg-signing-key: ${{ secrets.GPG_SECRET_ASCII_ARMORED }}
