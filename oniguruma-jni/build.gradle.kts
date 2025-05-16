@@ -178,7 +178,8 @@ mavenPublishing {
             developer {
                 id.set("zolotov")
                 name.set("Alexander Zolotov")
-                url.set("https://github.com/username/")
+                email.set("goldifit@gmail.com")
+                url.set("https://github.com/zolotov/")
             }
         }
 
