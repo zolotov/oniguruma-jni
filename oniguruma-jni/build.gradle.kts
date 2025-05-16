@@ -7,7 +7,7 @@ import org.jetbrains.desktop.buildscripts.normalizedName
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.jmh)
-    id("com.vanniktech.maven.publish") version "0.31.0"
+    id("com.vanniktech.maven.publish") version "0.32.0"
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
