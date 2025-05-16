@@ -14,7 +14,8 @@ jobs:
     uses: ./.github/workflows/build.yaml
 
   release:
-    runs-on: macos-latest
+    runs-on: ubuntu-22.04
+    needs: build-native
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
