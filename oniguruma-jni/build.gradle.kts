@@ -12,7 +12,10 @@ plugins {
 }
 
 group = "me.zolotov.oniguruma"
-version = (project.properties["version"] as? String)?.takeIf { it.isNotBlank() && it != "unspecified" } ?: "SNAPSHOT"
+description = """
+    A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
+    This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
+""".trimIndent()
 
 repositories {
     mavenCentral()
@@ -147,11 +150,8 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.DEFAULT)
     signAllPublications()
     pom {
-        name.set("Oniguruma JNI")
-        description.set("""
-            A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the onig crate.
-            This library is primarily designed to support syntax highlighting in IntelliJ-based IDEs through the textmate-core library.
-        """.trimIndent())
+        name.set(project.name)
+        description.set(project.description)
         url.set("https://github.com/zolotov/oniguruma-jni")
 
         licenses {
