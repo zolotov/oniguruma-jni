@@ -1,11 +1,11 @@
 # Oniguruma JNI
 
-A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the [onig](https://crates.io/crates/onig) crate. 
+A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the [onig](https://crates.io/crates/onig) crate.
 This library is primarily designed to support syntax highlighting in [IntelliJ](https://www.jetbrains.com/idea/)-based IDEs through the [`textmate-core`](https://github.com/JetBrains/intellij-community/tree/master/plugins/textmate/core) library.
 
 ## Overview
 
-This project provides Java Native Interface (JNI) bindings for TextMate grammar pattern matching, 
+This project provides Java Native Interface (JNI) bindings for TextMate grammar pattern matching,
 implemented in Rust using the `onig` crate which provides the native bindings to the Oniguruma regular expression library.
 
 ## Installation
@@ -57,7 +57,7 @@ try {
         result?.let {
             // Match found, process the integer array of positions
             it.asSequence()?.windowed(size = 2, step = 2, partialWindows = false) { (startByteOffset, endByteOffset) ->
-                
+
             }
         }
     } finally {
