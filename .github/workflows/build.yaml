@@ -6,6 +6,7 @@ on:
       - "**"
     tags:
       - "**"
+  workflow_call:
 
 env:
   RUST_VERSION: 1.84.1
