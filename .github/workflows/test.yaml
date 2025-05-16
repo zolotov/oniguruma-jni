@@ -38,7 +38,7 @@ jobs:
 
       - name: Publish Test Report
         if: always() # Ensure this step runs even if the test step fails
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         with:
           name: Tests Report (${{ matrix.os }})
           path: oniguruma-jni/build/test-results/test/*.xml
