@@ -159,7 +159,7 @@ mavenPublishing {
         javadocJar = JavadocJar.Dokka("dokkaHtml"),
         sourcesJar = true
     ))
-    publishToMavenCentral(SonatypeHost.DEFAULT)
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
     pom {
         name.set(project.name)
