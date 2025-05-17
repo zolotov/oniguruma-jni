@@ -32,14 +32,40 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Release
-        uses: joffrey-bion/gradle-library-release-action@v2
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish
         env:
           NATIVE_BUILD_MODE: "skip"
+          GITHUB_TOKEN: ${{ inputs.github-token }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_SECRET_ASCII_ARMORED }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SECRET_ASCII_ARMORED }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
+
+          # Properties expected by the gradle-maven-publish-plugin
+          # https://vanniktech.github.io/gradle-maven-publish-plugin/central/#__tabbed_5_2
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_TOKEN_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_TOKEN_PASSWORD }}
+        shell: bash
+        run: ./gradlew check generateChangelog publishAndReleaseToMavenCentral -Pversion=${{ inputs.version }} --no-configuration-cache
+
+      - name: Commit and push change log
+        id: changelog-commit
+        shell: bash
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add CHANGELOG.md
+          git commit -m "Version ${{ inputs.version }}"
+          git push
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create release and tag
+        uses: softprops/action-gh-release@v1
         with:
-          version: ${{ inputs.version }}
-          gpg-signing-key: ${{ secrets.GPG_SECRET_ASCII_ARMORED }}
-          gpg-signing-password: ${{ secrets.GPG_PASSWORD }}
-          sonatype-username: ${{ secrets.OSSRH_TOKEN_USERNAME }}
-          sonatype-password: ${{ secrets.OSSRH_TOKEN_PASSWORD }}
-          gradle-publish-tasks: publishAndReleaseToMavenCentral
+          tag_name: ${{ inputs.version }}
+          target_commitish: ${{ steps.changelog-commit.outputs.sha }}
+          body_path: build/reports/changelog/latest-release-body.md
