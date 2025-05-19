@@ -1,5 +1,9 @@
 # Oniguruma JNI
 
+[![Maven central version](https://img.shields.io/maven-central/v/me.zolotov.oniguruma/oniguruma-jni.svg)](https://search.maven.org/artifact/me.zolotov.oniguruma/oniguruma-jni)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zolotov/oniguruma-jni/build.yaml)](https://github.com/zolotov/oniguruma-jni/actions/workflows/build.yaml)
+[![GitHub License](https://img.shields.io/github/license/zolotov/oniguruma-jni)](https://github.com/zolotov/oniguruma-jni/blob/main/LICENSE)
+
 A JNI wrapper for the Oniguruma regular expression library, with Rust implementation using the [onig](https://crates.io/crates/onig) crate.
 This library is primarily designed to support syntax highlighting in [IntelliJ](https://www.jetbrains.com/idea/)-based IDEs through the [`textmate-core`](https://github.com/JetBrains/intellij-community/tree/master/plugins/textmate/core) library.
 
@@ -14,7 +18,7 @@ Add the following dependency to your project:
 
 ```kotlin
 dependencies {
-    implementation("com.github.zolotov:oniguruma-jni:0.1")
+    implementation("me.zolotov.oniguruma:oniguruma-jni:$version")
 }
 ```
 
@@ -24,7 +28,7 @@ dependencies {
 
 ```kotlin
 // Load the library from bundled resources
-// Note: This method has performance overhead during instantiation (unpacking library from jar)
+// Note: This method has performance overhead during instantiation (unpacking a native part from jar)
 // and JVM shutdown (cleanup hook to remove the unpacked file)
 val oniguruma = Oniguruma.createFromResources()
 
@@ -76,7 +80,6 @@ try {
 2. Ensure you have the following prerequisites:
     - JDK 8 or later
     - Rust toolchain
-    - Cross tool installed: `cargo install cross`
 3. Build the project using Gradle:
    ```bash
    ./gradlew build
