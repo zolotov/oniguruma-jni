@@ -1,6 +1,5 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.desktop.buildscripts.*
 import org.jetbrains.desktop.buildscripts.normalizedName
 
@@ -159,7 +158,7 @@ mavenPublishing {
         javadocJar = JavadocJar.Dokka("dokkaHtml"),
         sourcesJar = true
     ))
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     pom {
         name.set(project.name)
