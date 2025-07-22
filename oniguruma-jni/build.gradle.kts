@@ -48,6 +48,16 @@ kotlin {
 
 java {
     withSourcesJar()
+    modularity.inferModulePath.set(true)
+}
+
+tasks.named("compileJava", JavaCompile::class.java) {
+    // Capture the value outside the lambda at configuration time
+    val mainOutputPath = sourceSets["main"].output.asPath
+
+    options.compilerArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("--patch-module", "me.zolotov.oniguruma=$mainOutputPath")
+    })
 }
 
 val currentPlatform = currentPlatform()
