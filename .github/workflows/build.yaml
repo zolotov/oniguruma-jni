@@ -57,7 +57,6 @@ jobs:
           NATIVE_BUILD_MODE: "all"
           CC_x86_64_unknown_linux_musl: musl-gcc
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
-          RUSTFLAGS: "-C linker=aarch64-linux-gnu-gcc"
           CC_aarch64_unknown_linux_musl: aarch64-linux-gnu-gcc
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: aarch64-linux-gnu-gcc
 
