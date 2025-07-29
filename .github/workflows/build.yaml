@@ -24,6 +24,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y musl-tools musl-dev gcc-aarch64-linux-gnu
 
+          wget https://musl.cc/aarch64-linux-musl-cross.tgz
+          wget https://musl.cc/x86_64-linux-musl-cross.tgz
+
+          sudo tar -xzf aarch64-linux-musl-cross.tgz -C /opt/
+          sudo tar -xzf x86_64-linux-musl-cross.tgz -C /opt/
+
+          echo "/opt/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
+          echo "/opt/x86_64-linux-musl-cross/bin" >> $GITHUB_PATH
+
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
