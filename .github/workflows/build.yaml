@@ -30,6 +30,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-unknown-linux-musl
           cache: true
+          cache-key: x86
           cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
@@ -38,6 +39,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-unknown-linux-musl
           cache: true
+          cache-key: aarch64
           cache-workspaces: "./native -> target"
 
       - name: Setup Java
@@ -73,6 +75,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-pc-windows-msvc
           cache: true
+          cache-key: x86
           cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
@@ -81,6 +84,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-pc-windows-msvc
           cache: true
+          cache-key: aarch64
           cache-workspaces: "./native -> target"
 
       - name: Setup Java
@@ -116,6 +120,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-apple-darwin
           cache: true
+          cache-key: x86
           cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
@@ -124,6 +129,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-apple-darwin
           cache: true
+          cache-key: aarch64
           cache-workspaces: "./native -> target"
 
       - name: Setup Java
