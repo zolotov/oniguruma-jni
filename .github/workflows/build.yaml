@@ -23,14 +23,14 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          target: x86_64-unknown-linux-gnu
+          target: x86_64-unknown-linux-musl
           cache: true
 
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          target: aarch64-unknown-linux-gnu
+          target: aarch64-unknown-linux-musl
           cache: true
 
       - name: Install cross-compilation dependencies
@@ -48,7 +48,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle
-        run: ./gradlew compileNative-aarch64-unknown-linux-gnu compileNative-x86_64-unknown-linux-gnu
+        run: ./gradlew compileNative-aarch64-unknown-linux-musl compileNative-x86_64-unknown-linux-musl
         env:
           NATIVE_BUILD_MODE: "all"
 
