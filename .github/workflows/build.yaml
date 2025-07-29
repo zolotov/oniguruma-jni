@@ -30,8 +30,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-unknown-linux-musl
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -39,8 +38,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-unknown-linux-musl
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -75,8 +73,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-pc-windows-msvc
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -84,8 +81,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-pc-windows-msvc
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -120,8 +116,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-apple-darwin
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -129,8 +124,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-apple-darwin
           cache: true
-          cache-key: native
-          cache-directories: ./native/target
+          cache-workspaces: "./native -> target"
 
       - name: Setup Java
         uses: actions/setup-java@v4
