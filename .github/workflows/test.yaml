@@ -12,6 +12,9 @@ permissions:
   actions: read
   checks: write
 
+env:
+  RUST_VERSION: 1.84.1
+  
 jobs:
   test:
     runs-on: ${{ matrix.os }}
