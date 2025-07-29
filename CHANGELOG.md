@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.0.2](https://github.com/zolotov/oniguruma-jni/tree/1.0.2) (2025-07-29)
+[View commits](https://github.com/zolotov/oniguruma-jni/compare/1.0.1...1.0.2)
+
+**Closed issues:**
+
+- Support GLIBC 2.29 [\#20](https://github.com/zolotov/oniguruma-jni/issues/20)
+
+**Merged pull requests:**
+
+- Build linux artifacts on older version on Ubuntu to support GLIBC 2.29 [\#21](https://github.com/zolotov/oniguruma-jni/pull/21) ([@zolotov](https://github.com/zolotov))
+
+**Upgraded dependencies:**
+
+- Bump com.vanniktech.maven.publish from 0.33.0 to 0.34.0 [\#18](https://github.com/zolotov/oniguruma-jni/pull/18) ([@dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [1.0.1](https://github.com/zolotov/oniguruma-jni/tree/1.0.1) (2025-07-22)
 [View commits](https://github.com/zolotov/oniguruma-jni/compare/1.0.0...1.0.1)
 
