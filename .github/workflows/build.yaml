@@ -70,6 +70,7 @@ jobs:
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          working-directory: native
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-pc-windows-msvc
           cache: true
@@ -77,6 +78,7 @@ jobs:
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          working-directory: native
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-pc-windows-msvc
           cache: true
@@ -111,6 +113,7 @@ jobs:
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          working-directory: native
           toolchain: ${{ env.RUST_VERSION }}
           target: x86_64-apple-darwin
           cache: true
@@ -118,6 +121,7 @@ jobs:
       - name: Setup Rust for aarch64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          working-directory: native
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-apple-darwin
           cache: true
