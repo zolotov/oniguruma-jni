@@ -22,16 +22,7 @@ jobs:
       - name: Install cross-compilation dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools musl-dev gcc-aarch64-linux-gnu
-
-          wget https://musl.cc/aarch64-linux-musl-cross.tgz
-          wget https://musl.cc/x86_64-linux-musl-cross.tgz
-
-          sudo tar -xzf aarch64-linux-musl-cross.tgz -C /opt/
-          sudo tar -xzf x86_64-linux-musl-cross.tgz -C /opt/
-
-          echo "/opt/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
-          echo "/opt/x86_64-linux-musl-cross/bin" >> $GITHUB_PATH
+          sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu
 
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -64,6 +55,9 @@ jobs:
         run: ./gradlew compileNative-aarch64-unknown-linux-musl compileNative-x86_64-unknown-linux-musl
         env:
           NATIVE_BUILD_MODE: "all"
+          CC: aarch64-linux-gnu-gcc
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: aarch64-linux-gnu-gcc
+          RUSTFLAGS: "-C linker=aarch64-linux-gnu-gcc"
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
