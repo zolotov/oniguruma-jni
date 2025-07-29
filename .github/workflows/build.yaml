@@ -19,6 +19,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Install cross-compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools musl-dev gcc-aarch64-linux-gnu
+
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -32,11 +37,6 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           target: aarch64-unknown-linux-musl
           cache: true
-
-      - name: Install cross-compilation dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools musl-dev gcc-aarch64-linux-gnu
 
       - name: Setup Java
         uses: actions/setup-java@v4
