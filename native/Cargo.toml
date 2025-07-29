@@ -5,12 +5,7 @@ edition = "2021"
 
 [lib]
 name = "oniguruma_jni"
-
-[target.'cfg(not(target_env = "musl"))']
-crate-type = ["rlib", "cdylib"]
-
-[target.'cfg(target_env = "musl")']
-crate-type = ["rlib", "staticlib"]
+crate-type = ["rlib", "cdylib", "staticlib"]
 
 [dependencies]
 onig = { version = "6", default-features = false }
