@@ -14,15 +14,22 @@ env:
 jobs:
   build-native-linux:
     runs-on: ubuntu-22.04
+    container:
+      image: ubuntu:20.04
+      options: --user root
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install cross-compilation dependencies
+      - name: Install compilation dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          apt-get update
+          apt-get install -y \
+            curl \
+            build-essential \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu
 
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
