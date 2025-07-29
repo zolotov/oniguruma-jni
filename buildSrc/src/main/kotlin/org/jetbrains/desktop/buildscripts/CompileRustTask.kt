@@ -115,7 +115,7 @@ fun buildPlatformRustTarget(platform: Platform): String {
     val osPart = when (platform.os) {
         Os.WINDOWS -> "pc-windows-msvc"
         Os.MACOS -> "apple-darwin"
-        Os.LINUX -> "unknown-linux-gnu"
+        Os.LINUX -> "unknown-linux-musl"
     }
     val archPart = when (platform.arch) {
         Arch.aarch64 -> "aarch64"
