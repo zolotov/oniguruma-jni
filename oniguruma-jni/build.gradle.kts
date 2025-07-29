@@ -114,14 +114,14 @@ val slimJar = tasks.register<Jar>("slimJar") {
     description = "Assembles a jar archive without native libraries"
 
     archiveClassifier.set("slim")
-    from(sourceSets.main.get().output.classesDirs)
+    from(sourceSets.main.map { it.output.classesDirs })
 
-    from(sourceSets.main.get().output.resourcesDir!!) {
+    from(sourceSets.main.map { it.output.resourcesDir }) {
         exclude("**/native")
     }
 
     manifest {
-        from(tasks.jar.get().manifest)
+        from(tasks.jar.map { it.manifest })
     }
     dependsOn(tasks.processResources)
 }
@@ -150,7 +150,7 @@ javaComponent.addVariantsFromConfiguration(configurations.consumable("slim") {
     outgoing { artifact(slimJar) }
 }.get()) {}
 
-compileRustBindingsTaskByPlatform.filterValues { it.get().isEnabled }.forEach { (platform, task) ->
+compileRustBindingsTaskByPlatform.forEach { (platform, task) ->
     val conf = configurations.consumable("bindings_${platform.normalizedName}") {
         attributes {
             attribute(Attribute.of("me.zolotov.oniguruma.platform", String::class.java), platform.normalizedName)
@@ -158,10 +158,15 @@ compileRustBindingsTaskByPlatform.filterValues { it.get().isEnabled }.forEach { 
         outgoing {
             artifact(task.map { it.libraryFile }) {
                 classifier = platform.normalizedName
+                builtBy(task)
             }
         }
     }.get()
-    javaComponent.addVariantsFromConfiguration(conf) { }
+    task.configure {
+        if (enabled) {
+            javaComponent.addVariantsFromConfiguration(conf) { }
+        }
+    }
 }
 
 mavenPublishing {
