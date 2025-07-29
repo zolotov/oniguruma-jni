@@ -40,7 +40,7 @@ abstract class CompileRustTask @Inject constructor(
         val target = rustTarget.get()
         val name = crateName.get().replace('-', '_')
         when (target.os) {
-            Os.LINUX -> dir.resolve("lib$name.so")
+            Os.LINUX -> dir.resolve("lib$name.a")
             Os.MACOS -> dir.resolve("lib$name.dylib")
             Os.WINDOWS -> dir.resolve("$name.dll")
         }
