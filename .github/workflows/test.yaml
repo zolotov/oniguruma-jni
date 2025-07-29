@@ -18,11 +18,32 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+          - os: macos-14
+            target: x86_64-apple-darwin
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+      - name: Install compilation dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Setup Rust for x86_64
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          target: ${{ matrix.target }}
+          cache: true
+          cache-key: x86
+          cache-workspaces: "./native -> target"
 
       - name: Setup Java
         uses: actions/setup-java@v4
