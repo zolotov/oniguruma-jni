@@ -121,7 +121,7 @@ val slimJar = tasks.register<Jar>("slimJar") {
     }
 
     manifest {
-        from(tasks.jar.map { it.manifest })
+        from(tasks.jar.get().manifest)
     }
     dependsOn(tasks.processResources)
 }
