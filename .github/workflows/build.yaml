@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install compilation dependencies
         run: |
@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -119,7 +119,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust for x86_64
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -164,7 +164,7 @@ jobs:
     needs: [build-native-linux, build-native-windows, build-native-mac]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v5
