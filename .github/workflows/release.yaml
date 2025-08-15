@@ -1,4 +1,6 @@
 name: Release
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
@@ -62,6 +64,8 @@ jobs:
           git commit -m "Version ${{ inputs.version }}"
           git push
           echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release and tag
         uses: softprops/action-gh-release@v2
