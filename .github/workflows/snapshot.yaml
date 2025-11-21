@@ -21,7 +21,7 @@ jobs:
     needs: build-native
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v6
