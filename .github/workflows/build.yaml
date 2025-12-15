@@ -65,7 +65,7 @@ jobs:
           NATIVE_BUILD_MODE: "all"
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: linux-native-artifacts
           path: oniguruma-jni/build/target
@@ -110,7 +110,7 @@ jobs:
         run: ./gradlew compileNative-x86_64-pc-windows-msvc compileNative-aarch64-pc-windows-msvc
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: windows-native-artifacts
           path: oniguruma-jni/build/target
@@ -155,7 +155,7 @@ jobs:
           NATIVE_BUILD_MODE: "all"
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: macos-native-artifacts
           path: oniguruma-jni/build/target
