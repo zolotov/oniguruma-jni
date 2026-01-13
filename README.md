@@ -78,7 +78,7 @@ try {
 
 1. Clone the repository
 2. Ensure you have the following prerequisites:
-    - JDK 8 or later
+    - JDK 17 or later
     - Rust toolchain
 3. Build the project using Gradle:
    ```bash
