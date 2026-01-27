@@ -2,10 +2,15 @@ name: "CodeQL"
 
 # This workflow provides CodeQL security scanning for GitHub Actions workflows.
 #
+# IMPORTANT: To use this workflow, the repository owner must DISABLE the
+# "Default Setup" CodeQL in repository settings:
+#   Settings -> Security & Analysis -> Code scanning -> Disable "Default setup"
+#
+# Default Setup and custom workflows cannot coexist - they conflict with each other.
+#
 # NOTE: Java/Kotlin analysis is intentionally DISABLED because:
 # - The project uses Kotlin 2.3.0
 # - CodeQL currently only supports Kotlin versions below 2.2.30
-# - See: https://github.com/github/codeql/issues/new
 #
 # When CodeQL adds support for Kotlin 2.3+, java-kotlin can be re-enabled.
 
