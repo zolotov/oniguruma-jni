@@ -22,7 +22,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 23 * * 5'  # Run weekly on Friday at 23:00 UTC
+    - cron: '0 23 * * 5'  # Weekly on Friday at 23:00 UTC
 
 permissions:
   actions: read
