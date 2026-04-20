@@ -1,0 +1,43 @@
+name: "CodeQL"
+
+# NOTE: Java/Kotlin analysis is intentionally DISABLED because:
+# - The project uses Kotlin 2.3.0
+# - CodeQL currently only supports Kotlin versions below 2.2.30
+#
+# When CodeQL adds support for Kotlin 2.3+, java-kotlin can be re-enabled.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 23 * * 5'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  packages: read
+
+jobs:
+  analyze:
+    name: Analyze (actions)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: actions
+          build-mode: none
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:actions"
