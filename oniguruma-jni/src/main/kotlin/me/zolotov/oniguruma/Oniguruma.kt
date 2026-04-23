@@ -30,4 +30,12 @@ class Oniguruma private constructor() {
     external fun createString(utf8Content: ByteArray): Long
 
     external fun freeString(textPtr: Long)
+
+    external fun matchEarliest(
+        regexPtrs: LongArray,
+        textPtr: Long,
+        byteOffset: Int,
+        matchBeginPosition: Boolean,
+        matchBeginString: Boolean,
+    ): IntArray?
 }

@@ -12,8 +12,8 @@
 //! So, for exampe `java.lang.System::gc()` becomes `Java_java_lang_System_gc`.
 
 use jni::{
-    objects::{JByteArray, JClass, JPrimitiveArray, ReleaseMode},
-    sys::{jboolean, jbyteArray, jint, jintArray, jlong},
+    objects::{JByteArray, JClass, JLongArray, JPrimitiveArray, ReleaseMode},
+    sys::{jboolean, jbyteArray, jint, jintArray, jlong, jlongArray},
     JNIEnv,
 };
 use onig::Regex;
@@ -114,6 +114,98 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_freeRegex(
 ) {
     // Be carefult to restore owned type from pointer
     try_catch(|| free::<Regex>(ptr)).propagate_exception(env);
+}
+
+#[no_mangle]
+pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_matchEarliest(
+    env: JNIEnv,
+    _: JClass,
+    regex_ptrs: jlongArray,
+    string_ptr: jlong,
+    byte_offset: jint,
+    match_begin_position: jboolean,
+    match_begin_string: jboolean,
+) -> jintArray {
+    try_catch(|| {
+        match_earliest(
+            &env,
+            regex_ptrs,
+            string_ptr,
+            byte_offset,
+            match_begin_position,
+            match_begin_string,
+        )
+    })
+    .propagate_exception(env)
+    .unwrap_or(ptr::null_mut())
+}
+
+fn match_earliest(
+    env: &JNIEnv,
+    regex_ptrs: jlongArray,
+    string_ptr: jlong,
+    byte_offset: jint,
+    match_begin_position: jboolean,
+    match_begin_string: jboolean,
+) -> Result<jintArray> {
+    if regex_ptrs.is_null() || string_ptr == 0 {
+        return Err(Error::NullPatternOrString);
+    }
+    let str = unsafe { &*(string_ptr as *mut String) };
+
+    let mut options = SearchOptions::SEARCH_OPTION_NONE;
+    if match_begin_position == 0 {
+        options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_POSITION) };
+    }
+    if match_begin_string == 0 {
+        options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_STRING) };
+    }
+
+    let long_array = unsafe { JLongArray::from_raw(regex_ptrs) };
+    let len = env.get_array_length(&long_array)? as usize;
+    let mut ptrs = vec![0i64; len];
+    env.get_long_array_region(&long_array, 0, &mut ptrs)?;
+
+    let mut best_index: i32 = -1;
+    let mut best_start: usize = usize::MAX;
+    let mut best_offsets: Vec<i32> = Vec::new();
+
+    for (i, &regex_ptr) in ptrs.iter().enumerate() {
+        if regex_ptr == 0 {
+            continue;
+        }
+        let regex = unsafe { &*(regex_ptr as *const Regex) };
+        let mut region = Region::new();
+        let matched = regex.search_with_options(
+            str,
+            byte_offset as usize,
+            str.len(),
+            options,
+            Some(&mut region),
+        );
+        if let Some(start) = matched {
+            if start < best_start {
+                best_start = start;
+                best_index = i as i32;
+                let mut iterator = region.iter();
+                best_offsets = (0..region.len())
+                    .map(|_| iterator.next())
+                    .map(|pos| pos.map(|(s, e)| (s as i32, e as i32)))
+                    .map(|pos| pos.unwrap_or((-1, -1)))
+                    .flat_map(|(s, e)| [s, e])
+                    .collect::<Vec<_>>();
+            }
+        }
+    }
+
+    if best_index >= 0 {
+        let mut result = Vec::with_capacity(1 + best_offsets.len());
+        result.push(best_index);
+        result.extend_from_slice(&best_offsets);
+        Ok(create_jni_int_array(env, &result)?.into_raw())
+    } else {
+        Ok(ptr::null_mut())
+    }
 }
 
 fn free<T: 'static>(ptr: i64) -> Result<()> {
