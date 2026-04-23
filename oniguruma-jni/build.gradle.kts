@@ -43,6 +43,11 @@ tasks.test {
     useJUnitPlatform()
 }
 
+jmh {
+    resultFormat.set("JSON")
+    resultsFile.set(project.layout.buildDirectory.file("reports/jmh/results.json"))
+}
+
 kotlin {
     jvmToolchain(17)
 }
