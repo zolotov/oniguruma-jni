@@ -1,0 +1,228 @@
+[
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "me.zolotov.oniguruma.benchmark.CreateBenchmark.ffi_createRegex",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/home/workspace-agent/.gradle/jdks/jdk25/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/workspaces/oniguruma-jni/oniguruma-ffi/build/tmp/jmh",
+            "-Duser.country",
+            "-Duser.language=en",
+            "-Duser.variant",
+            "--enable-native-access=ALL-UNNAMED",
+            "-Doniguruma.ffi.lib=/workspaces/oniguruma-jni/oniguruma-ffi/build/native/liboniguruma_ffi.so"
+        ],
+        "jdkVersion" : "25.0.3",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.3+9-LTS",
+        "warmupIterations" : 1,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1307.0008505494,
+            "scoreError" : 147.93923724337688,
+            "scoreConfidence" : [
+                1159.061613306023,
+                1454.940087792777
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1297.6405700276407,
+                "50.0" : 1311.4676044822095,
+                "90.0" : 1311.8943771383495,
+                "95.0" : 1311.8943771383495,
+                "99.0" : 1311.8943771383495,
+                "99.9" : 1311.8943771383495,
+                "99.99" : 1311.8943771383495,
+                "99.999" : 1311.8943771383495,
+                "99.9999" : 1311.8943771383495,
+                "100.0" : 1311.8943771383495
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    1297.6405700276407,
+                    1311.8943771383495,
+                    1311.4676044822095
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "me.zolotov.oniguruma.benchmark.CreateBenchmark.ffi_createString",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/home/workspace-agent/.gradle/jdks/jdk25/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/workspaces/oniguruma-jni/oniguruma-ffi/build/tmp/jmh",
+            "-Duser.country",
+            "-Duser.language=en",
+            "-Duser.variant",
+            "--enable-native-access=ALL-UNNAMED",
+            "-Doniguruma.ffi.lib=/workspaces/oniguruma-jni/oniguruma-ffi/build/native/liboniguruma_ffi.so"
+        ],
+        "jdkVersion" : "25.0.3",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.3+9-LTS",
+        "warmupIterations" : 1,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 16096.074538425664,
+            "scoreError" : 3062.1401621022164,
+            "scoreConfidence" : [
+                13033.934376323448,
+                19158.214700527882
+            ],
+            "scorePercentiles" : {
+                "0.0" : 15932.204051105258,
+                "50.0" : 16088.387205982488,
+                "90.0" : 16267.632358189245,
+                "95.0" : 16267.632358189245,
+                "99.0" : 16267.632358189245,
+                "99.9" : 16267.632358189245,
+                "99.99" : 16267.632358189245,
+                "99.999" : 16267.632358189245,
+                "99.9999" : 16267.632358189245,
+                "100.0" : 16267.632358189245
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    15932.204051105258,
+                    16088.387205982488,
+                    16267.632358189245
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "me.zolotov.oniguruma.benchmark.CreateBenchmark.jni_createRegex",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/home/workspace-agent/.gradle/jdks/jdk25/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/workspaces/oniguruma-jni/oniguruma-ffi/build/tmp/jmh",
+            "-Duser.country",
+            "-Duser.language=en",
+            "-Duser.variant",
+            "--enable-native-access=ALL-UNNAMED",
+            "-Doniguruma.ffi.lib=/workspaces/oniguruma-jni/oniguruma-ffi/build/native/liboniguruma_ffi.so"
+        ],
+        "jdkVersion" : "25.0.3",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.3+9-LTS",
+        "warmupIterations" : 1,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1200.0494099132559,
+            "scoreError" : 8.500019919824792,
+            "scoreConfidence" : [
+                1191.549389993431,
+                1208.5494298330807
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1199.6430862117809,
+                "50.0" : 1199.9471992640936,
+                "90.0" : 1200.557944263894,
+                "95.0" : 1200.557944263894,
+                "99.0" : 1200.557944263894,
+                "99.9" : 1200.557944263894,
+                "99.99" : 1200.557944263894,
+                "99.999" : 1200.557944263894,
+                "99.9999" : 1200.557944263894,
+                "100.0" : 1200.557944263894
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    1199.9471992640936,
+                    1199.6430862117809,
+                    1200.557944263894
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "me.zolotov.oniguruma.benchmark.CreateBenchmark.jni_createString",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/home/workspace-agent/.gradle/jdks/jdk25/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/workspaces/oniguruma-jni/oniguruma-ffi/build/tmp/jmh",
+            "-Duser.country",
+            "-Duser.language=en",
+            "-Duser.variant",
+            "--enable-native-access=ALL-UNNAMED",
+            "-Doniguruma.ffi.lib=/workspaces/oniguruma-jni/oniguruma-ffi/build/native/liboniguruma_ffi.so"
+        ],
+        "jdkVersion" : "25.0.3",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.3+9-LTS",
+        "warmupIterations" : 1,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 7597.724576885546,
+            "scoreError" : 572.2066129567777,
+            "scoreConfidence" : [
+                7025.517963928769,
+                8169.931189842324
+            ],
+            "scorePercentiles" : {
+                "0.0" : 7575.215726061906,
+                "50.0" : 7584.407671269107,
+                "90.0" : 7633.5503333256265,
+                "95.0" : 7633.5503333256265,
+                "99.0" : 7633.5503333256265,
+                "99.9" : 7633.5503333256265,
+                "99.99" : 7633.5503333256265,
+                "99.999" : 7633.5503333256265,
+                "99.9999" : 7633.5503333256265,
+                "100.0" : 7633.5503333256265
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    7575.215726061906,
+                    7584.407671269107,
+                    7633.5503333256265
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+

@@ -4,3 +4,4 @@ plugins {
 rootProject.name = "oniguruma-jni"
 
 include("oniguruma-jni")
+include("oniguruma-ffi")
