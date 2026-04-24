@@ -12,21 +12,42 @@
 //! So, for exampe `java.lang.System::gc()` becomes `Java_java_lang_System_gc`.
 
 use jni::{
-    objects::{JByteArray, JClass, JPrimitiveArray, ReleaseMode},
+    objects::{GlobalRef, JByteArray, JClass, JPrimitiveArray, ReleaseMode},
     sys::{jboolean, jbyteArray, jint, jintArray, jlong},
-    JNIEnv,
+    JavaVM, JNIEnv,
 };
 use onig::Regex;
 use onig::{RegexOptions, Region, SearchOptions, Syntax};
 use onig_sys::{ONIG_OPTION_NOT_BEGIN_POSITION, ONIG_OPTION_NOT_BEGIN_STRING};
 use std::{
     any::Any,
+    cell::RefCell,
+    ffi::c_void,
     panic::{catch_unwind, RefUnwindSafe},
     ptr, slice,
     str::{self, Utf8Error},
+    sync::OnceLock,
 };
 
 type Result<T> = std::result::Result<T, Error>;
+
+// Cache a GlobalRef to RuntimeException so the error path avoids a class lookup on every throw.
+static RUNTIME_EXCEPTION_CLASS: OnceLock<GlobalRef> = OnceLock::new();
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub unsafe extern "system" fn JNI_OnLoad(raw_vm: *mut jni::sys::JavaVM, _: *mut c_void) -> jint {
+    let vm = JavaVM::from_raw(raw_vm).unwrap();
+    let mut env: JNIEnv = vm.get_env().unwrap();
+    let cls = env.find_class("java/lang/RuntimeException").unwrap();
+    RUNTIME_EXCEPTION_CLASS.set(env.new_global_ref(cls).unwrap()).ok();
+    jni::sys::JNI_VERSION_1_8
+}
+
+// Reuse a Region per thread to avoid a malloc/free on every match call.
+thread_local! {
+    static REGION: RefCell<Region> = RefCell::new(Region::new());
+}
 
 #[derive(thiserror::Error, Debug)]
 enum Error {
@@ -165,31 +186,34 @@ fn match_pattern(
         options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_STRING) };
     }
 
-    let mut region = Region::new();
-    let matched = regex.search_with_options(
-        str,
-        byte_offset as usize,
-        str.len(),
-        options,
-        Some(&mut region),
-    );
-    if matched.is_some() {
-        let mut iterator = region.iter();
+    REGION.with(|r| {
+        let mut region = r.borrow_mut();
+        region.clear();
+        let matched = regex.search_with_options(
+            str,
+            byte_offset as usize,
+            str.len(),
+            options,
+            Some(&mut *region),
+        );
+        if matched.is_some() {
+            let mut iterator = region.iter();
 
-        // Constructing a Vec containing all the start and end offsets one after the other.
-        //
-        // Region iterator can return None, but we still need to iterate region.len() times
-        // not matter what. This is not ideiomatic API, but oh well.
-        let offsets = (0..region.len())
-            .map(|_| iterator.next())
-            .map(|i| i.map(|(s, e)| (s as i32, e as i32)))
-            .map(|i| i.unwrap_or((-1, -1)))
-            .flat_map(|(s, e)| [s, e])
-            .collect::<Vec<_>>();
-        Ok(create_jni_int_array(env, &offsets)?.into_raw())
-    } else {
-        Ok(ptr::null_mut())
-    }
+            // Constructing a Vec containing all the start and end offsets one after the other.
+            //
+            // Region iterator can return None, but we still need to iterate region.len() times
+            // not matter what. This is not ideiomatic API, but oh well.
+            let offsets = (0..region.len())
+                .map(|_| iterator.next())
+                .map(|i| i.map(|(s, e)| (s as i32, e as i32)))
+                .map(|i| i.unwrap_or((-1, -1)))
+                .flat_map(|(s, e)| [s, e])
+                .collect::<Vec<_>>();
+            Ok(create_jni_int_array(env, &offsets)?.into_raw())
+        } else {
+            Ok(ptr::null_mut())
+        }
+    })
 }
 
 fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
@@ -198,11 +222,11 @@ fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
     } else {
         unsafe {
             let p = JByteArray::from_raw(utf8);
-            let elements = env.get_array_elements(&p, ReleaseMode::NoCopyBack)?;
-            let length = env.get_array_length(&p)?;
-            let slice = slice::from_raw_parts(elements.as_ptr() as *const u8, length as usize);
+            // Critical: pins the Java heap object without copying (GC is suspended for duration).
+            let elements = env.get_array_elements_critical(&p, ReleaseMode::NoCopyBack)?;
+            let slice = slice::from_raw_parts(elements.as_ptr() as *const u8, elements.len());
             let str = str::from_utf8(slice)?.to_string();
-            // Need to make sure we're leaking owned type
+            drop(elements); // Release critical section before any further JNI calls.
             Ok(Box::into_raw(Box::<String>::new(str)) as jlong)
         }
     }
@@ -224,9 +248,15 @@ impl<T> ToJavaException<T> for Result<T> {
             Ok(r) => Some(r),
             Err(jni_error) => {
                 if !env.exception_check().unwrap() {
-                    // Only throw exception if there are no pending exception yet
-                    let class = env.find_class("java/lang/RuntimeException").unwrap();
-                    env.throw_new(class, jni_error.to_string()).unwrap();
+                    // Only throw if there is no pending exception yet.
+                    // Use the cached GlobalRef to avoid a class lookup on the error path.
+                    match RUNTIME_EXCEPTION_CLASS.get() {
+                        Some(cls) => env.throw_new(cls, jni_error.to_string()).unwrap(),
+                        None => {
+                            let class = env.find_class("java/lang/RuntimeException").unwrap();
+                            env.throw_new(class, jni_error.to_string()).unwrap();
+                        }
+                    }
                 }
                 None
             }
