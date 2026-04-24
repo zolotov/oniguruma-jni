@@ -64,4 +64,14 @@ public class CreateBenchmark {
         bh.consume(ptr);
         ffi.freeRegex(ptr);
     }
+
+    // ── JNI: createStringAndRegex (combined, single round-trip) ───────────
+
+    @Benchmark
+    public void jni_createStringAndRegex(Blackhole bh) {
+        long[] ptrs = jni.createStringAndRegex(TEXT, PATTERN);
+        bh.consume(ptrs);
+        jni.freeString(ptrs[0]);
+        jni.freeRegex(ptrs[1]);
+    }
 }
