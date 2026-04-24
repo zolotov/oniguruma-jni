@@ -12,8 +12,8 @@
 //! So, for exampe `java.lang.System::gc()` becomes `Java_java_lang_System_gc`.
 
 use jni::{
-    objects::{JByteArray, JClass, JPrimitiveArray, ReleaseMode},
-    sys::{jboolean, jbyteArray, jint, jintArray, jlong},
+    objects::{JByteArray, JClass, JLongArray, JPrimitiveArray, ReleaseMode},
+    sys::{jboolean, jbyteArray, jint, jintArray, jlong, jlongArray},
     JNIEnv,
 };
 use onig::Regex;
@@ -116,6 +116,31 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_freeRegex(
     try_catch(|| free::<Regex>(ptr)).propagate_exception(env);
 }
 
+/// Iterate over a Java long[] of compiled regex pointers and return the index + bounds of
+/// the earliest match. Returns int[]{winnerIndex, start, end} or null for no match.
+/// Uses &mut JNIEnv (same workaround as createString) because get_array_elements needs it.
+#[no_mangle]
+pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_findFirstMatch(
+    mut env: JNIEnv,
+    _: JClass,
+    regex_ptrs: jlongArray,
+    string_ptr: jlong,
+    byte_offset: jint,
+    match_begin_position: jboolean,
+    match_begin_string: jboolean,
+) -> jintArray {
+    find_first_match(
+        &mut env,
+        regex_ptrs,
+        string_ptr,
+        byte_offset,
+        match_begin_position,
+        match_begin_string,
+    )
+    .propagate_exception(env)
+    .unwrap_or(ptr::null_mut())
+}
+
 fn free<T: 'static>(ptr: i64) -> Result<()> {
     if ptr != 0 {
         unsafe {
@@ -206,6 +231,75 @@ fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
             Ok(Box::into_raw(Box::<String>::new(str)) as jlong)
         }
     }
+}
+
+fn find_first_match(
+    env: &mut JNIEnv,
+    regex_ptrs_raw: jlongArray,
+    string_ptr: jlong,
+    byte_offset: jint,
+    match_begin_position: jboolean,
+    match_begin_string: jboolean,
+) -> Result<jintArray> {
+    if string_ptr == 0 {
+        return Err(Error::NullPointer);
+    }
+    let text = unsafe { &*(string_ptr as *const String) };
+
+    let ptrs_array = unsafe { JLongArray::from_raw(regex_ptrs_raw) };
+    let count = env.get_array_length(&ptrs_array)? as usize;
+
+    // Pin the Java array just long enough to copy pointers into an owned Vec,
+    // then release the pin so we can use env again for create_jni_int_array.
+    let ptrs: Vec<i64> = unsafe {
+        let elements = env.get_array_elements(&ptrs_array, ReleaseMode::NoCopyBack)?;
+        let slice = slice::from_raw_parts(elements.as_ptr(), count);
+        slice.to_vec()
+        // AutoElements dropped here → pin released
+    };
+
+    let mut options = SearchOptions::SEARCH_OPTION_NONE;
+    if match_begin_position == 0 {
+        options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_POSITION) };
+    }
+    if match_begin_string == 0 {
+        options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_STRING) };
+    }
+
+    let mut best_idx: i32 = -1;
+    let mut best_start: usize = usize::MAX;
+    let mut best_end: usize = 0;
+
+    for (i, &ptr) in ptrs.iter().enumerate() {
+        if ptr == 0 {
+            continue;
+        }
+        let regex = unsafe { &*(ptr as *const Regex) };
+        let mut region = Region::new();
+        if let Some(start) = regex.search_with_options(
+            text,
+            byte_offset as usize,
+            text.len(),
+            options,
+            Some(&mut region),
+        ) {
+            if start < best_start {
+                best_start = start;
+                best_end = region.pos(0).map(|(_, e)| e).unwrap_or(start);
+                best_idx = i as i32;
+                if best_start == byte_offset as usize {
+                    break; // can't do better — mirrors TextMate early-exit
+                }
+            }
+        }
+    }
+
+    if best_idx < 0 {
+        return Ok(ptr::null_mut());
+    }
+
+    let result = [best_idx, best_start as i32, best_end as i32];
+    Ok(create_jni_int_array(env, &result)?.into_raw())
 }
 
 fn create_jni_int_array<'a>(env: &JNIEnv<'a>, input: &[i32]) -> Result<JPrimitiveArray<'a, i32>> {

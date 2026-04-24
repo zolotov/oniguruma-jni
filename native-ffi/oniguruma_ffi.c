@@ -86,3 +86,54 @@ int32_t oni_match(int64_t reg_ptr, int64_t str_ptr, int32_t byte_offset,
     onig_region_free(region, 1);
     return count;
 }
+
+/**
+ * Iterate reg_ptrs[0..reg_count) and return the index of the pattern whose
+ * match starts earliest in the string.  On success returns the 0-based winner
+ * index and writes [start, end] to *out_start / *out_end.
+ * Returns -1 when no pattern matches.
+ * Mirrors the early-exit optimisation from TextMate's matchRule.
+ */
+int32_t oni_find_first_match(const int64_t *reg_ptrs, int32_t reg_count,
+                             int64_t str_ptr, int32_t byte_offset,
+                             int32_t match_begin_position, int32_t match_begin_string,
+                             int32_t *out_start, int32_t *out_end) {
+    if (str_ptr == 0 || reg_ptrs == NULL || reg_count <= 0) return -1;
+
+    OniString *s = (OniString *)(uintptr_t)str_ptr;
+    const unsigned char *str   = s->bytes;
+    const unsigned char *end   = str + s->len;
+    const unsigned char *at    = str + byte_offset;
+
+    OnigOptionType opts = ONIG_OPTION_NONE;
+    if (!match_begin_position) opts |= ONIG_OPTION_NOT_BEGIN_POSITION;
+    if (!match_begin_string)   opts |= ONIG_OPTION_NOT_BEGIN_STRING;
+
+    int32_t best_idx   = -1;
+    int32_t best_start = INT32_MAX;
+    int32_t best_end   = -1;
+
+    OnigRegion *region = onig_region_new();
+
+    for (int32_t i = 0; i < reg_count; i++) {
+        if (reg_ptrs[i] == 0) continue;
+        regex_t *reg = (regex_t *)(uintptr_t)reg_ptrs[i];
+
+        onig_region_clear(region);
+        int r = onig_search(reg, str, end, at, end, region, opts);
+        if (r >= 0 && r < best_start) {
+            best_start = r;
+            best_end   = (region->num_regs > 0) ? region->end[0] : r;
+            best_idx   = i;
+            if (best_start == byte_offset) break; /* can't do better */
+        }
+    }
+
+    onig_region_free(region, 1);
+
+    if (best_idx >= 0) {
+        *out_start = best_start;
+        *out_end   = best_end;
+    }
+    return best_idx;
+}

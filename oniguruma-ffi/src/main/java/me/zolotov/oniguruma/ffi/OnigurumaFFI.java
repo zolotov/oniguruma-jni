@@ -15,6 +15,7 @@ public final class OnigurumaFFI {
     private static final MethodHandle CREATE_STRING;
     private static final MethodHandle FREE_STRING;
     private static final MethodHandle MATCH;
+    private static final MethodHandle FIND_FIRST_MATCH;
 
     static {
         String libPath = System.getProperty("oniguruma.ffi.lib");
@@ -59,6 +60,24 @@ public final class OnigurumaFFI {
                 ValueLayout.JAVA_INT,   // match_begin_string
                 ValueLayout.ADDRESS,    // regions_out
                 ValueLayout.JAVA_INT)   // max_regions
+        );
+
+        // int32_t oni_find_first_match(
+        //   const int64_t *reg_ptrs, int32_t reg_count,
+        //   int64_t str_ptr, int32_t byte_offset,
+        //   int32_t match_begin_position, int32_t match_begin_string,
+        //   int32_t *out_start, int32_t *out_end)
+        FIND_FIRST_MATCH = linker.downcallHandle(
+            lookup.find("oni_find_first_match").orElseThrow(),
+            FunctionDescriptor.of(ValueLayout.JAVA_INT,
+                ValueLayout.ADDRESS,    // reg_ptrs (pointer to int64[] in off-heap memory)
+                ValueLayout.JAVA_INT,   // reg_count
+                ValueLayout.JAVA_LONG,  // str_ptr
+                ValueLayout.JAVA_INT,   // byte_offset
+                ValueLayout.JAVA_INT,   // match_begin_position
+                ValueLayout.JAVA_INT,   // match_begin_string
+                ValueLayout.ADDRESS,    // out_start
+                ValueLayout.ADDRESS)    // out_end
         );
     }
 
@@ -113,6 +132,39 @@ public final class OnigurumaFFI {
             return result;
         } catch (Throwable t) {
             throw new RuntimeException("oni_match failed", t);
+        }
+    }
+
+    /**
+     * Pass all compiled regex pointers to native code in one call. Native code iterates
+     * them and returns int[]{winnerIndex, start, end} or null if nothing matched.
+     */
+    public int[] findFirstMatch(long[] regexPtrs, long textPtr, int byteOffset,
+                                boolean matchBeginPosition, boolean matchBeginString) {
+        try (Arena arena = Arena.ofConfined()) {
+            // Copy the Java long[] into off-heap memory so C can read it as int64_t[]
+            MemorySegment ptrsSeg = arena.allocate(ValueLayout.JAVA_LONG, regexPtrs.length);
+            MemorySegment.copy(regexPtrs, 0, ptrsSeg, ValueLayout.JAVA_LONG, 0, regexPtrs.length);
+
+            MemorySegment outStart = arena.allocate(ValueLayout.JAVA_INT);
+            MemorySegment outEnd   = arena.allocate(ValueLayout.JAVA_INT);
+
+            int winnerIdx = (int) FIND_FIRST_MATCH.invokeExact(
+                ptrsSeg, regexPtrs.length,
+                textPtr, byteOffset,
+                matchBeginPosition ? 1 : 0,
+                matchBeginString   ? 1 : 0,
+                outStart, outEnd
+            );
+
+            if (winnerIdx < 0) return null;
+            return new int[]{
+                winnerIdx,
+                outStart.get(ValueLayout.JAVA_INT, 0),
+                outEnd.get(ValueLayout.JAVA_INT, 0)
+            };
+        } catch (Throwable t) {
+            throw new RuntimeException("oni_find_first_match failed", t);
         }
     }
 }
