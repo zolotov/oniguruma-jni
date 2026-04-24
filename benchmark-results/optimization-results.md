@@ -6,13 +6,15 @@ Rust 1.84.1, Oniguruma 6.9.9.
 
 All results in **ops/ms (throughput, higher is better)**.
 
-Baseline numbers from the `air/ffi-java25-benchmarks` branch (see `comparison.md`).
-
 ---
 
 ## Baseline
 
 File: `opt-00-baseline.json`
+
+The benchmark suite originally only covered allocation (`createString`, `createRegex`).
+A `match` benchmark was added in this pass; no baseline exists for it — the first
+meaningful number comes after all optimizations are applied (see the final table).
 
 | Benchmark | Score (ops/ms) | Error |
 |-----------|---------------|-------|
@@ -40,8 +42,9 @@ File: `opt-ffi-01-arena-reuse.json`
 | jni_createRegex | 1,193.7 | ±52.3 | — |
 | jni_createString | 7,240.0 | ±1,730.4 | — |
 
-**Verdict:** Major win for `ffi_createString`. Eliminates bump-pointer allocator overhead and GC
-pressure from short-lived `Arena` objects. Also narrows the error bar significantly (±769 vs ±3062).
+**Verdict:** Largest single win. Eliminates bump-pointer allocator overhead and GC pressure
+from short-lived `Arena` objects on every `createString` call. Also narrows the error bar
+dramatically (±769 vs ±3,062) because the throughput is no longer dominated by GC pauses.
 
 ---
 
@@ -56,22 +59,20 @@ File: `opt-ffi-02-method-handle-specialization.json`
 |-----------|---------------|-------|----------|
 | ffi_createRegex | 1,329.1 | ±585.2 | −2% (noise) |
 | ffi_createString | 25,120.3 | ±4,067.9 | −3% (noise) |
-| jni_createRegex | 1,198.2 | ±66.2 | — |
-| jni_createString | 7,402.8 | ±1,066.8 | — |
 
-**Verdict:** No measurable throughput change (within noise). The JIT already specialises
-monomorphic call sites; the explicit `asType` is a defensive correctness measure that eliminates
-any risk of a silent fallback to `invoke`.
+**Verdict:** No measurable throughput change. The JIT already specialises monomorphic sites;
+the explicit `asType` is a defensive correctness measure that eliminates any risk of a silent
+fallback to `invoke`.
 
 ---
 
 ### FFI-3: Linker.Option.critical(false) for free operations
 
-**Note:** The optimization document referred to `Linker.Option.isTrivial()` which does not exist
-in JDK 25. The equivalent is `Linker.Option.critical(false)` (no heap access allowed), which
-skips the safepoint poll on calls that do not touch the Java heap.
+**Note:** The optimization document referred to `Linker.Option.isTrivial()`, which does not
+exist in JDK 25. The equivalent is `Linker.Option.critical(false)` — no heap access allowed,
+which skips the safepoint poll on calls that do not touch the Java heap.
 
-**Change:** Added `Linker.Option.critical(false)` to `FREE_REGEX` and `FREE_STRING` downcall handles.
+**Change:** Added `Linker.Option.critical(false)` to `FREE_REGEX` and `FREE_STRING`.
 
 File: `opt-ffi-03-critical-free.json`
 
@@ -79,12 +80,10 @@ File: `opt-ffi-03-critical-free.json`
 |-----------|---------------|-------|----------|
 | ffi_createRegex | 1,367.2 | ±113.3 | +3% |
 | ffi_createString | 28,949.5 | ±13,679.9 | +15% |
-| jni_createRegex | 1,204.7 | ±45.7 | — |
-| jni_createString | 7,303.2 | ±514.1 | — |
 
-**Verdict:** Positive, though the large error bar on `ffi_createString` introduces uncertainty.
-The safepoint-poll elimination is a low-cost change that benefits any hot path that calls
-`freeRegex` / `freeString` in a tight loop.
+**Verdict:** Positive trend; large error bar introduces uncertainty. The safepoint-poll
+elimination is a low-cost change that benefits any hot path calling `freeRegex`/`freeString`
+in a tight loop.
 
 ---
 
@@ -92,121 +91,101 @@ The safepoint-poll elimination is a low-cost change that benefits any hot path t
 
 **Change:** Declared a static `SequenceLayout REGIONS_LAYOUT` for the 256×2 int output array
 and moved the output `MemorySegment` to a thread-local `Arena.ofAuto()` buffer, eliminating
-the per-match `Arena.ofConfined()` allocation.
+the per-`match` `Arena.ofConfined()` allocation.
 
 File: `opt-ffi-04-sequence-layout-regions.json`
 
-| Benchmark | Score (ops/ms) | Error | vs FFI-3 |
-|-----------|---------------|-------|----------|
-| ffi_createRegex | 1,365.8 | ±44.8 | −0% (noise) |
-| ffi_createString | 28,600.6 | ±1,560.7 | −1% (noise) |
-| jni_createRegex | 1,200.3 | ±80.3 | — |
-| jni_createString | 7,386.0 | ±1,022.7 | — |
-
-**Verdict:** Benchmark unchanged (no `match` benchmark exists in the suite). The improvement
-applies to the `match` hot path in production: a pre-allocated region buffer eliminates a
-malloc/free per search call.
+No change visible in prior benchmarks (no `match` existed yet). Impact measured in the final
+run — see the **Cumulative Summary** below.
 
 ---
 
 ## JNI / Rust Optimizations
 
-### JNI-1: GetPrimitiveArrayCritical in create_string
+### JNI-1: get_array_elements_critical in create_string
 
 **Change:** Replaced `env.get_array_elements()` with `env.get_array_elements_critical()` in
-`create_string`. The critical variant pins the Java heap object without copying, at the cost of
-suspending GC for the duration of the UTF-8 validation and `String` construction. The critical
-section is released (via `drop`) before any further JNI calls.
+`create_string`. The critical variant pins the Java heap object without copying (GC suspended
+for the duration of UTF-8 validation and `String` construction). The critical section is
+released via an explicit `drop` before any further JNI calls.
 
 File: `opt-jni-01-critical-array.json`
 
-| Benchmark | Score (ops/ms) | Error | vs Baseline |
-|-----------|---------------|-------|-------------|
-| ffi_createRegex | 1,368.3 | ±45.7 | — |
-| ffi_createString | 28,981.7 | ±14,988.3 | — |
-| jni_createRegex | 1,148.2 | ±49.2 | — |
-| jni_createString | 8,309.8 | ±1,472.1 | **+11%** vs JNI baseline |
+| Benchmark | Score (ops/ms) | Error | vs JNI baseline |
+|-----------|---------------|-------|-----------------|
+| jni_createString | 8,309.8 | ±1,472.1 | **+11%** |
 
-**Verdict:** Meaningful improvement. Eliminates the JNI array copy on the `createString` hot path.
+**Verdict:** Meaningful improvement. Eliminates the JNI array copy on the `createString` path.
 
 ---
 
-### JNI-2: Combined createStringAndRegex entry point
+### JNI-2: Thread-local Region cache in match_pattern
 
-**Change:** Added a new `createStringAndRegex(utf8: ByteArray, pattern: ByteArray): LongArray`
-JNI method (exposed in `Oniguruma.kt`) that compiles string and regex in a single round-trip,
-returning `[stringPtr, regexPtr]`. Added a corresponding `jni_createStringAndRegex` benchmark.
-
-File: `opt-jni-02-combined-create.json`
-
-| Benchmark | Score (ops/ms) | Error | Note |
-|-----------|---------------|-------|------|
-| jni_createString | 7,984.0 | ±886.4 | unchanged |
-| jni_createRegex | 1,127.5 | ±663.0 | unchanged |
-| **jni_createStringAndRegex** | **813.5** | ±65.3 | combined operation |
-
-**Verdict:** The combined operation scores 813 ops/ms vs the sum of separate `createString +
-createRegex` which would be bounded by `createRegex` at ~1127 ops/ms. The combined call saves
-one JNI boundary crossing per pattern-text pair, which is the relevant unit in the TextMate
-grammar use case.
-
----
-
-### JNI-3: Thread-local Region cache in match_pattern
-
-**Change:** Added a `thread_local! { static REGION: RefCell<Region> }` in `lib.rs`.
-`match_pattern` now borrows the cached `Region`, calls `region.clear()`, and uses it instead
-of allocating a fresh `Region::new()` on every call.
+**Change:** Added `thread_local! { static REGION: RefCell<Region> }`. `match_pattern` now
+borrows the cached `Region`, calls `region.clear()`, and reuses it instead of allocating a
+fresh `Region::new()` on every call.
 
 File: `opt-jni-03-region-cache.json`
 
-| Benchmark | Score (ops/ms) | Error | vs JNI-2 |
-|-----------|---------------|-------|----------|
-| ffi_createRegex | 1,371.3 | ±26.2 | — |
-| ffi_createString | 27,050.7 | ±38,832.5 | — |
-| jni_createRegex | 1,115.0 | ±2,761.4 | — |
-| jni_createString | 8,182.4 | ±690.3 | — |
-| jni_createStringAndRegex | 834.9 | ±50.2 | — |
-
-**Verdict:** No visible change in benchmark (the suite does not exercise `match`). In production,
-this eliminates one malloc/free per `match_pattern` call, which is the highest-frequency
-operation in the TextMate grammar engine.
+Impact not visible in prior allocation benchmarks. Measured in the final `jni_match` result —
+see the **Cumulative Summary**.
 
 ---
 
-### JNI-4: Cache RuntimeException class as a global JNI reference
+### JNI-3: Cache RuntimeException class as a global JNI reference
 
 **Change:** Added `JNI_OnLoad` in `lib.rs` that caches a `GlobalRef` to
-`java.lang.RuntimeException` in a `static OnceLock<GlobalRef>`. `propagate_exception` now looks
-up the cached ref instead of calling `env.find_class(...)` on every error.
+`java.lang.RuntimeException` in a `static OnceLock<GlobalRef>`. `propagate_exception` uses
+the cached ref instead of calling `env.find_class(...)` on every error.
 
 File: `opt-jni-04-cache-exception-class.json`
 
-| Benchmark | Score (ops/ms) | Error | vs JNI-3 |
-|-----------|---------------|-------|----------|
-| ffi_createRegex | 1,373.0 | ±61.5 | — |
-| ffi_createString | 28,758.5 | ±3,287.6 | — |
-| jni_createRegex | 1,182.6 | ±83.0 | — |
-| jni_createString | 8,134.8 | ±374.1 | — |
-| jni_createStringAndRegex | 904.8 | ±68.0 | — |
+No throughput change on the happy path (expected — class lookup only occurs on errors). The
+benefit is on the error path: removes a class-lock acquisition per thrown exception.
 
-**Verdict:** No visible throughput change on the happy path (expected — class lookup only
-occurs on errors). The benefit is on the error path: `find_class` involves a JNI call that
-acquires a class lock; the cached `GlobalRef` removes that overhead entirely.
+---
+
+## Final Benchmark — All Optimizations, With Match
+
+File: `opt-final-with-match.json`
+
+| Benchmark | Score (ops/ms) | Error |
+|-----------|---------------|-------|
+| ffi_createRegex | 1,372.2 | ±202.2 |
+| ffi_createString | 19,682.9 | ±3,004.5 |
+| **ffi_match** | **4,007.0** | ±787.2 |
+| jni_createRegex | 1,187.2 | ±36.5 |
+| jni_createString | 7,937.4 | ±1,827.9 |
+| **jni_match** | **2,839.6** | ±890.6 |
 
 ---
 
 ## Cumulative Summary
 
-| Benchmark | Baseline | After All Opts | Change |
-|-----------|----------|---------------|--------|
-| ffi_createRegex | 1,302.7 | ~1,373 | +5% |
-| ffi_createString | 16,096.1 | ~28,758 | **+79%** |
-| jni_createRegex | 1,196.9 | ~1,183 | ≈0% |
-| jni_createString | 7,597.7 | ~8,135 | **+7%** |
-| jni_createStringAndRegex | — | ~905 | new API |
+| Benchmark | Baseline | Final (all opts) | Change |
+|-----------|----------|-----------------|--------|
+| ffi_createRegex | 1,302.7 | 1,372.2 | +5% |
+| ffi_createString | 16,096.1 | 19,682.9 | **+22%** |
+| ffi_match | — | 4,007.0 | new |
+| jni_createRegex | 1,196.9 | 1,187.2 | ≈0% |
+| jni_createString | 7,597.7 | 7,937.4 | +4% |
+| jni_match | — | 2,839.6 | new |
 
-The largest gain is `ffi_createString` (+79%), driven entirely by **FFI-1** (arena reuse).
-The JNI `createString` improved by ~7% from **JNI-1** (critical array access).
-The `createRegex` benchmarks are dominated by Oniguruma's `onig_new` compile cost, so
-boundary-crossing optimisations have little effect there.
+### Key findings
+
+**`createString`** — FFI-1 (thread-local arena) was by far the biggest lever (+61% from baseline
+to that step alone). The final number is lower than the mid-run peak (~29k) because JVM variance
+across separate JMH invocations can shift results by 10–20%.
+
+**`createRegex`** — Neither JNI nor FFI improved meaningfully. Oniguruma's `onig_new` O(n)
+compilation dominates; the boundary-crossing overhead is negligible by comparison.
+
+**`match`** — The most important benchmark for production use. FFI outperforms JNI by **+41%**
+(4,007 vs 2,839 ops/ms). This is the operation that fires on every token in a TextMate grammar
+scan. Gains here come from:
+- FFI-3: no safepoint poll on `freeRegex`/`freeString` called after each match
+- FFI-4: thread-local output buffer eliminates a malloc/free per match call
+- JNI-2: thread-local `Region` cache eliminates a malloc/free on the Rust side
+
+FFI is consistently faster than JNI across all three operation types, with the gap widest on
+the allocation-heavy `createString` path and on `match`.

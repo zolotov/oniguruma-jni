@@ -13,7 +13,7 @@
 
 use jni::{
     objects::{GlobalRef, JByteArray, JClass, JPrimitiveArray, ReleaseMode},
-    sys::{jboolean, jbyteArray, jint, jintArray, jlong, jlongArray},
+    sys::{jboolean, jbyteArray, jint, jintArray, jlong},
     JavaVM, JNIEnv,
 };
 use onig::Regex;
@@ -113,18 +113,6 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createString(
     create_string(&mut env, utf8)
         .propagate_exception(env)
         .unwrap_or_default()
-}
-
-#[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createStringAndRegex(
-    mut env: JNIEnv,
-    _: JClass,
-    utf8: jbyteArray,
-    pattern: jbyteArray,
-) -> jlongArray {
-    create_string_and_regex(&mut env, utf8, pattern)
-        .propagate_exception(env)
-        .unwrap_or(ptr::null_mut())
 }
 
 #[no_mangle]
@@ -240,14 +228,6 @@ fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
             Ok(Box::into_raw(Box::<String>::new(str)) as jlong)
         }
     }
-}
-
-fn create_string_and_regex(env: &mut JNIEnv, utf8: jbyteArray, pattern: jbyteArray) -> Result<jlongArray> {
-    let str_ptr = create_string(env, utf8)?;
-    let regex_ptr = create_regex(env, pattern)?;
-    let array = env.new_long_array(2)?;
-    env.set_long_array_region(&array, 0, &[str_ptr, regex_ptr])?;
-    Ok(array.into_raw())
 }
 
 fn create_jni_int_array<'a>(env: &JNIEnv<'a>, input: &[i32]) -> Result<JPrimitiveArray<'a, i32>> {

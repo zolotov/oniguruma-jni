@@ -23,10 +23,29 @@ public class CreateBenchmark {
     private Oniguruma    jni;
     private OnigurumaFFI ffi;
 
+    // Pre-computed pointers for match benchmarks.
+    private long jniStringPtr;
+    private long jniRegexPtr;
+    private long ffiStringPtr;
+    private long ffiRegexPtr;
+
     @Setup(Level.Trial)
     public void setup() {
         jni = Oniguruma.Companion.createFromResources();
         ffi = new OnigurumaFFI();
+
+        jniStringPtr = jni.createString(TEXT);
+        jniRegexPtr  = jni.createRegex(PATTERN);
+        ffiStringPtr = ffi.createString(TEXT);
+        ffiRegexPtr  = ffi.createRegex(PATTERN);
+    }
+
+    @TearDown(Level.Trial)
+    public void teardown() {
+        jni.freeString(jniStringPtr);
+        jni.freeRegex(jniRegexPtr);
+        ffi.freeString(ffiStringPtr);
+        ffi.freeRegex(ffiRegexPtr);
     }
 
     // ── JNI: createString ──────────────────────────────────────────────────
@@ -65,13 +84,17 @@ public class CreateBenchmark {
         ffi.freeRegex(ptr);
     }
 
-    // ── JNI: createStringAndRegex (combined, single round-trip) ───────────
+    // ── JNI: match (string and regex pre-computed) ─────────────────────────
 
     @Benchmark
-    public void jni_createStringAndRegex(Blackhole bh) {
-        long[] ptrs = jni.createStringAndRegex(TEXT, PATTERN);
-        bh.consume(ptrs);
-        jni.freeString(ptrs[0]);
-        jni.freeRegex(ptrs[1]);
+    public void jni_match(Blackhole bh) {
+        bh.consume(jni.match(jniRegexPtr, jniStringPtr, 0, true, true));
+    }
+
+    // ── FFI: match (string and regex pre-computed) ─────────────────────────
+
+    @Benchmark
+    public void ffi_match(Blackhole bh) {
+        bh.consume(ffi.match(ffiRegexPtr, ffiStringPtr, 0, true, true));
     }
 }

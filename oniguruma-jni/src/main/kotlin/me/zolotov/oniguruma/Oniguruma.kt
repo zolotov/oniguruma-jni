@@ -30,7 +30,4 @@ class Oniguruma private constructor() {
     external fun createString(utf8Content: ByteArray): Long
 
     external fun freeString(textPtr: Long)
-
-    /** Combines [createString] and [createRegex] in a single JNI round-trip. Returns [longArrayOf(stringPtr, regexPtr)]. */
-    external fun createStringAndRegex(utf8Content: ByteArray, pattern: ByteArray): LongArray
 }
