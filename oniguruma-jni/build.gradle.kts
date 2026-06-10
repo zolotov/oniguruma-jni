@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
 import org.jetbrains.desktop.buildscripts.*
+import org.jetbrains.desktop.buildscripts.Platform
 import org.jetbrains.desktop.buildscripts.normalizedName
 
 plugins {
@@ -62,6 +63,22 @@ tasks.named("compileJava", JavaCompile::class.java) {
 }
 
 val currentPlatform = currentPlatform()
+val nativeBuildMode = providers.environmentVariable("NATIVE_BUILD_MODE").orNull
+
+fun isNativeBuildEnabled(platform: Platform): Boolean = when (nativeBuildMode) {
+    "skip" -> false
+    "all" -> true
+    else -> currentPlatform == platform
+}
+
+// Whether the native library for the platform is available in this build:
+// either compiled by the corresponding task, or provided in prebuilt form
+// when the compilation is skipped (the CI release flow downloads prebuilt
+// binaries for all platforms into the build directory).
+fun isNativeLibraryAvailable(platform: Platform): Boolean = when (nativeBuildMode) {
+    "skip", "all" -> true
+    else -> currentPlatform == platform
+}
 
 val compileRustBindingsTaskByPlatform = listOf(
     Platform(Os.MACOS, Arch.aarch64),
@@ -76,11 +93,7 @@ val compileRustBindingsTaskByPlatform = listOf(
         rustProfile = "release"
         rustTarget = platform
         nativeDirectory = layout.projectDirectory.dir("../native")
-        enabled = when (providers.environmentVariable("NATIVE_BUILD_MODE").orNull) {
-            "skip" -> false
-            "all" -> true
-            else -> currentPlatform == platform
-        }
+        enabled = isNativeBuildEnabled(platform)
     }
 }
 
@@ -144,6 +157,8 @@ configurations {
 
 val javaComponent = components.findByName("java") as AdhocComponentWithVariants
 javaComponent.addVariantsFromConfiguration(configurations.consumable("slim") {
+    // carry the same runtime dependencies (e.g. kotlin-stdlib) as the regular runtime variant
+    extendsFrom(configurations.implementation.get(), configurations.runtimeOnly.get())
     attributes {
         attribute(PACKAGING_ATTRIBUTE, "slim")
     }
@@ -162,10 +177,11 @@ compileRustBindingsTaskByPlatform.forEach { (platform, task) ->
             }
         }
     }.get()
-    task.configure {
-        if (enabled) {
-            javaComponent.addVariantsFromConfiguration(conf) { }
-        }
+    // The variant must be registered at configuration time: modifying the component after
+    // the publication has been populated fails in Gradle 9. Only platforms whose binaries
+    // are available in this build are published.
+    if (isNativeLibraryAvailable(platform)) {
+        javaComponent.addVariantsFromConfiguration(conf) { }
     }
 }
 

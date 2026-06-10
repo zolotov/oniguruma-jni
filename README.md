@@ -22,6 +22,44 @@ dependencies {
 }
 ```
 
+By default, the dependency resolves to the "fat" jar that bundles native libraries for all
+supported platforms as jar resources, ready to be loaded with `Oniguruma.createFromResources()`.
+
+### Slim jar
+
+If you don't want the native libraries of all platforms on your classpath (e.g. you ship
+platform-specific distributions or manage the native library yourself), request the "slim" jar
+instead by setting the `me.zolotov.oniguruma.packaging` attribute on the dependency:
+
+```kotlin
+dependencies {
+    implementation("me.zolotov.oniguruma:oniguruma-jni:$version") {
+        attributes {
+            attribute(Attribute.of("me.zolotov.oniguruma.packaging", String::class.java), "slim")
+        }
+    }
+}
+```
+
+The slim jar contains no native libraries, so load the library from a file with
+`Oniguruma.createFromFile(path)`. The per-platform native libraries are published alongside the
+jars and can be resolved with the `me.zolotov.oniguruma.platform` attribute
+(`<os>-<arch>`, e.g. `macos-aarch64`, `linux-x86_64`, `windows-x86_64`):
+
+```kotlin
+val onigurumaNativeBinding: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+    attributes {
+        attribute(Attribute.of("me.zolotov.oniguruma.platform", String::class.java), "macos-aarch64")
+    }
+}
+
+dependencies {
+    onigurumaNativeBinding("me.zolotov.oniguruma:oniguruma-jni:$version")
+}
+```
+
 ## Usage
 
 ### Basic Setup
