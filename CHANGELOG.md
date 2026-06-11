@@ -1,5 +1,36 @@
 # Change Log
 
+## [1.0.3](https://github.com/zolotov/oniguruma-jni/tree/1.0.3) (2026-06-11)
+[View commits](https://github.com/zolotov/oniguruma-jni/compare/1.0.2...1.0.3)
+
+**Closed issues:**
+
+- Benchmark matching string against list of patterns [\#4](https://github.com/zolotov/oniguruma-jni/issues/4)
+
+**Merged pull requests:**
+
+- Optimize JNI: critical array access, Region cache, cached exception c… [\#51](https://github.com/zolotov/oniguruma-jni/pull/51) ([@zolotov](https://github.com/zolotov))
+- Codeql action failure [\#42](https://github.com/zolotov/oniguruma-jni/pull/42) ([@zolotov](https://github.com/zolotov))
+- Convert rust\-toolchain to TOML format [\#52](https://github.com/zolotov/oniguruma-jni/pull/52) ([@zolotov](https://github.com/zolotov))
+- Upgrade gradle [\#40](https://github.com/zolotov/oniguruma-jni/pull/40) ([@zolotov](https://github.com/zolotov))
+- Set Permissions [\#26](https://github.com/zolotov/oniguruma-jni/pull/26) ([@zolotov](https://github.com/zolotov))
+
+**Upgraded dependencies:**
+
+- Bump bytes from 1.10.0 to 1.11.1 in /native [\#53](https://github.com/zolotov/oniguruma-jni/pull/53) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.jetbrains.kotlin.jvm from 2.3.0 to 2.3.10 [\#45](https://github.com/zolotov/oniguruma-jni/pull/45) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump jvm from 2.3.0 to 2.3.10 [\#44](https://github.com/zolotov/oniguruma-jni/pull/44) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump gradle\-wrapper from 9.3.0 to 9.3.1 [\#43](https://github.com/zolotov/oniguruma-jni/pull/43) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump gradle\-wrapper from 9.2.1 to 9.3.0 [\#41](https://github.com/zolotov/oniguruma-jni/pull/41) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump jvm from 2.2.21 to 2.3.0 [\#39](https://github.com/zolotov/oniguruma-jni/pull/39) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.jetbrains.kotlin.jvm from 2.2.21 to 2.3.0 [\#38](https://github.com/zolotov/oniguruma-jni/pull/38) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump jvm from 2.2.20 to 2.2.21 [\#31](https://github.com/zolotov/oniguruma-jni/pull/31) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.jetbrains.kotlin.jvm from 2.2.20 to 2.2.21 [\#32](https://github.com/zolotov/oniguruma-jni/pull/32) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.jetbrains.kotlin.jvm from 2.2.10 to 2.2.20 [\#29](https://github.com/zolotov/oniguruma-jni/pull/29) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump jvm from 2.2.10 to 2.2.20 [\#28](https://github.com/zolotov/oniguruma-jni/pull/28) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.jetbrains.kotlin.jvm from 2.2.0 to 2.2.10 [\#25](https://github.com/zolotov/oniguruma-jni/pull/25) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump jvm from 2.2.0 to 2.2.10 [\#24](https://github.com/zolotov/oniguruma-jni/pull/24) ([@dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [1.0.2](https://github.com/zolotov/oniguruma-jni/tree/1.0.2) (2025-07-29)
 [View commits](https://github.com/zolotov/oniguruma-jni/compare/1.0.1...1.0.2)
 
