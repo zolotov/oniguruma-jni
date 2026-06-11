@@ -198,11 +198,11 @@ fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
     } else {
         unsafe {
             let p = JByteArray::from_raw(utf8);
-            let elements = env.get_array_elements(&p, ReleaseMode::NoCopyBack)?;
-            let length = env.get_array_length(&p)?;
-            let slice = slice::from_raw_parts(elements.as_ptr() as *const u8, length as usize);
+            // Critical: pins the Java heap object without copying (GC is suspended for duration).
+            let elements = env.get_array_elements_critical(&p, ReleaseMode::NoCopyBack)?;
+            let slice = slice::from_raw_parts(elements.as_ptr() as *const u8, elements.len());
             let str = str::from_utf8(slice)?.to_string();
-            // Need to make sure we're leaking owned type
+            drop(elements); // Release critical section before any further JNI calls.
             Ok(Box::into_raw(Box::<String>::new(str)) as jlong)
         }
     }
