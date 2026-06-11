@@ -12,9 +12,9 @@
 //! So, for exampe `java.lang.System::gc()` becomes `Java_java_lang_System_gc`.
 
 use jni::{
-    objects::{JByteArray, JClass, JPrimitiveArray, ReleaseMode},
+    objects::{GlobalRef, JByteArray, JClass, JPrimitiveArray, ReleaseMode},
     sys::{jboolean, jbyteArray, jint, jintArray, jlong},
-    JNIEnv,
+    JavaVM, JNIEnv,
 };
 use onig::Regex;
 use onig::{RegexOptions, Region, SearchOptions, Syntax};
@@ -22,12 +22,27 @@ use onig_sys::{ONIG_OPTION_NOT_BEGIN_POSITION, ONIG_OPTION_NOT_BEGIN_STRING};
 use std::{
     any::Any,
     cell::RefCell,
+    ffi::c_void,
     panic::{catch_unwind, RefUnwindSafe},
     ptr, slice,
     str::{self, Utf8Error},
+    sync::OnceLock,
 };
 
 type Result<T> = std::result::Result<T, Error>;
+
+// Cache a GlobalRef to RuntimeException so the error path avoids a class lookup on every throw.
+static RUNTIME_EXCEPTION_CLASS: OnceLock<GlobalRef> = OnceLock::new();
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub unsafe extern "system" fn JNI_OnLoad(raw_vm: *mut jni::sys::JavaVM, _: *mut c_void) -> jint {
+    let vm = JavaVM::from_raw(raw_vm).unwrap();
+    let mut env: JNIEnv = vm.get_env().unwrap();
+    let cls = env.find_class("java/lang/RuntimeException").unwrap();
+    RUNTIME_EXCEPTION_CLASS.set(env.new_global_ref(cls).unwrap()).ok();
+    jni::sys::JNI_VERSION_1_8
+}
 
 // Reuse a Region per thread to avoid a malloc/free on every match call.
 thread_local! {
@@ -233,9 +248,15 @@ impl<T> ToJavaException<T> for Result<T> {
             Ok(r) => Some(r),
             Err(jni_error) => {
                 if !env.exception_check().unwrap() {
-                    // Only throw exception if there are no pending exception yet
-                    let class = env.find_class("java/lang/RuntimeException").unwrap();
-                    env.throw_new(class, jni_error.to_string()).unwrap();
+                    // Only throw if there is no pending exception yet.
+                    // Use the cached GlobalRef to avoid a class lookup on the error path.
+                    match RUNTIME_EXCEPTION_CLASS.get() {
+                        Some(cls) => env.throw_new(cls, jni_error.to_string()).unwrap(),
+                        None => {
+                            let class = env.find_class("java/lang/RuntimeException").unwrap();
+                            env.throw_new(class, jni_error.to_string()).unwrap();
+                        }
+                    }
                 }
                 None
             }
