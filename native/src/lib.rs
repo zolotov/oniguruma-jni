@@ -21,12 +21,18 @@ use onig::{RegexOptions, Region, SearchOptions, Syntax};
 use onig_sys::{ONIG_OPTION_NOT_BEGIN_POSITION, ONIG_OPTION_NOT_BEGIN_STRING};
 use std::{
     any::Any,
+    cell::RefCell,
     panic::{catch_unwind, RefUnwindSafe},
     ptr, slice,
     str::{self, Utf8Error},
 };
 
 type Result<T> = std::result::Result<T, Error>;
+
+// Reuse a Region per thread to avoid a malloc/free on every match call.
+thread_local! {
+    static REGION: RefCell<Region> = RefCell::new(Region::new());
+}
 
 #[derive(thiserror::Error, Debug)]
 enum Error {
@@ -165,31 +171,34 @@ fn match_pattern(
         options |= unsafe { SearchOptions::from_bits_unchecked(ONIG_OPTION_NOT_BEGIN_STRING) };
     }
 
-    let mut region = Region::new();
-    let matched = regex.search_with_options(
-        str,
-        byte_offset as usize,
-        str.len(),
-        options,
-        Some(&mut region),
-    );
-    if matched.is_some() {
-        let mut iterator = region.iter();
+    REGION.with(|r| {
+        let mut region = r.borrow_mut();
+        region.clear();
+        let matched = regex.search_with_options(
+            str,
+            byte_offset as usize,
+            str.len(),
+            options,
+            Some(&mut *region),
+        );
+        if matched.is_some() {
+            let mut iterator = region.iter();
 
-        // Constructing a Vec containing all the start and end offsets one after the other.
-        //
-        // Region iterator can return None, but we still need to iterate region.len() times
-        // not matter what. This is not ideiomatic API, but oh well.
-        let offsets = (0..region.len())
-            .map(|_| iterator.next())
-            .map(|i| i.map(|(s, e)| (s as i32, e as i32)))
-            .map(|i| i.unwrap_or((-1, -1)))
-            .flat_map(|(s, e)| [s, e])
-            .collect::<Vec<_>>();
-        Ok(create_jni_int_array(env, &offsets)?.into_raw())
-    } else {
-        Ok(ptr::null_mut())
-    }
+            // Constructing a Vec containing all the start and end offsets one after the other.
+            //
+            // Region iterator can return None, but we still need to iterate region.len() times
+            // not matter what. This is not ideiomatic API, but oh well.
+            let offsets = (0..region.len())
+                .map(|_| iterator.next())
+                .map(|i| i.map(|(s, e)| (s as i32, e as i32)))
+                .map(|i| i.unwrap_or((-1, -1)))
+                .flat_map(|(s, e)| [s, e])
+                .collect::<Vec<_>>();
+            Ok(create_jni_int_array(env, &offsets)?.into_raw())
+        } else {
+            Ok(ptr::null_mut())
+        }
+    })
 }
 
 fn create_string(env: &mut JNIEnv, utf8: jbyteArray) -> Result<jlong> {
