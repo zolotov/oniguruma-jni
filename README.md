@@ -120,7 +120,7 @@ try {
     - Rust toolchain
 3. Build the project using Gradle:
    ```bash
-   ./gradlew build
+   ./gradlew :oniguruma-jni:build
    ```
 
 ## Contributing

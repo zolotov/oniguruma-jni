@@ -1,5 +1,28 @@
 # Change Log
 
+## [Unreleased]
+
+**Breaking changes:**
+
+- Move public imports from `me.zolotov.oniguruma.*` to `me.zolotov.oniguruma.jni.*`.
+- Rename the JPMS module from `me.zolotov.oniguruma` to `me.zolotov.oniguruma.jni`.
+- Keep the Maven coordinates at `me.zolotov.oniguruma:oniguruma-jni` while moving the Rust crate to `oniguruma-jni/native`.
+
+**Migration notes:**
+
+- Update imports from `me.zolotov.oniguruma.Oniguruma` to `me.zolotov.oniguruma.jni.Oniguruma`.
+- Update `requires me.zolotov.oniguruma;` to `requires me.zolotov.oniguruma.jni;`.
+
+```java
+module your.module {
+    requires me.zolotov.oniguruma.jni;
+}
+```
+
+**Changed:**
+
+- Rewrite `oniguruma-jni` from Kotlin to Java and simplify the published Gradle build to a Java-first configuration.
+
 ## [1.0.3](https://github.com/zolotov/oniguruma-jni/tree/1.0.3) (2026-06-11)
 [View commits](https://github.com/zolotov/oniguruma-jni/compare/1.0.2...1.0.3)
 
