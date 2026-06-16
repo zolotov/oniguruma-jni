@@ -1,4 +1,4 @@
-package org.jetbrains.desktop.buildscripts
+package me.zolotov.oniguruma.build
 
 import org.gradle.api.tasks.Input
 import org.gradle.internal.impldep.kotlinx.serialization.Serializable
