@@ -71,7 +71,7 @@ enum Error {
 }
 
 #[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createRegex(
+pub extern "C" fn Java_me_zolotov_oniguruma_jni_Oniguruma_createRegex(
     env: JNIEnv,
     _: JClass,
     pattern: jbyteArray,
@@ -82,7 +82,7 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createRegex(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_match(
+pub extern "C" fn Java_me_zolotov_oniguruma_jni_Oniguruma_match(
     env: JNIEnv,
     _: JClass,
     regex_ptr: jlong,
@@ -106,7 +106,7 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_match(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createString(
+pub extern "C" fn Java_me_zolotov_oniguruma_jni_Oniguruma_createString(
     mut env: JNIEnv,
     _: JClass,
     utf8: jbyteArray,
@@ -118,7 +118,7 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_createString(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_freeString(
+pub extern "C" fn Java_me_zolotov_oniguruma_jni_Oniguruma_freeString(
     env: JNIEnv,
     _: JClass,
     ptr: jlong,
@@ -128,7 +128,7 @@ pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_freeString(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_me_zolotov_oniguruma_Oniguruma_freeRegex(
+pub extern "C" fn Java_me_zolotov_oniguruma_jni_Oniguruma_freeRegex(
     env: JNIEnv,
     _: JClass,
     ptr: jlong,
