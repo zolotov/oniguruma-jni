@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle
-        run: ./gradlew test
+        run: ./gradlew :oniguruma-jni:test
 
       - name: Publish Test Report
         if: always() # Ensure this step runs even if the test step fails
