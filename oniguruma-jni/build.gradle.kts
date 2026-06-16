@@ -1,8 +1,8 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
-import org.jetbrains.desktop.buildscripts.*
-import org.jetbrains.desktop.buildscripts.Platform
-import org.jetbrains.desktop.buildscripts.normalizedName
+import me.zolotov.oniguruma.build.*
+import me.zolotov.oniguruma.build.Platform
+import me.zolotov.oniguruma.build.normalizedName
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -92,7 +92,7 @@ val compileRustBindingsTaskByPlatform = listOf(
         crateName = "oniguruma-jni"
         rustProfile = "release"
         rustTarget = platform
-        nativeDirectory = layout.projectDirectory.dir("../native")
+        nativeDirectory = layout.projectDirectory.dir("native")
         enabled = isNativeBuildEnabled(platform)
     }
 }
