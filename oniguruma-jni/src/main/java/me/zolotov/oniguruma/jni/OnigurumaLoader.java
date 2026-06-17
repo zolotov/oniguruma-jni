@@ -1,0 +1,105 @@
+package me.zolotov.oniguruma.jni;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+
+final class OnigurumaLoader {
+    private static volatile boolean loaded;
+
+    private OnigurumaLoader() {
+    }
+
+    static synchronized void loadFromResources() {
+        if (!loaded) {
+            String libraryName = System.mapLibraryName("oniguruma_jni");
+            String resourcePath = determineResourcePath(libraryName);
+            Path extractedLib = extractLibraryToTemporaryDirectory(resourcePath, libraryName);
+            System.load(extractedLib.toAbsolutePath().toString());
+            loaded = true;
+        }
+    }
+
+    static synchronized void loadFromFile(Path path) {
+        if (!loaded) {
+            System.load(path.toAbsolutePath().toString());
+            loaded = true;
+        }
+    }
+
+    private static String determineResourcePath(String libraryName) {
+        String os = System.getProperty("os.name").toLowerCase();
+        String arch = System.getProperty("os.arch").toLowerCase();
+
+        String osName;
+        if (os.contains("win")) {
+            osName = "windows";
+        } else if (os.contains("mac") || os.contains("darwin")) {
+            osName = "macos";
+        } else if (os.contains("linux")) {
+            osName = "linux";
+        } else {
+            throw new UnsupportedOperationException("Unsupported operating system: " + os);
+        }
+
+        String archName;
+        if (arch.contains("amd64") || arch.contains("x86_64")) {
+            archName = "x86_64";
+        } else if (arch.contains("aarch64") || arch.contains("arm64")) {
+            archName = "aarch64";
+        } else if (arch.contains("x86") || arch.contains("i386")) {
+            archName = "x86";
+        } else if (arch.contains("arm")) {
+            String bits = System.getProperty("sun.arch.data.model");
+            archName = bits == null || bits.equals("64") ? "arm64" : "arm32";
+        } else {
+            throw new UnsupportedOperationException("Unsupported architecture: " + arch);
+        }
+
+        return "/native/" + osName + "-" + archName + "/" + libraryName;
+    }
+
+    private static Path extractLibraryToTemporaryDirectory(String resourcePath, String libraryName) {
+        try {
+            Path tempDirectory = Files.createTempDirectory("oniguruma_jni");
+            Path libraryFile = tempDirectory.resolve(libraryName);
+
+            try (InputStream input = OnigurumaLoader.class.getResourceAsStream(resourcePath)) {
+                if (input == null) {
+                    throw new UnsatisfiedLinkError("Native library not found in resources: " + resourcePath);
+                }
+                Files.copy(input, libraryFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> deleteRecursively(tempDirectory)));
+            return libraryFile;
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to extract native library from " + resourcePath, e);
+        }
+    }
+
+    private static void deleteRecursively(Path directory) {
+        try {
+            Files.walkFileTree(directory, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.deleteIfExists(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.deleteIfExists(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException ignored) {
+            // Best effort cleanup during shutdown.
+        }
+    }
+}

@@ -1,14 +1,13 @@
 import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.JavaLibrary
 import me.zolotov.oniguruma.build.*
 import me.zolotov.oniguruma.build.Platform
 import me.zolotov.oniguruma.build.normalizedName
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    `java-library`
     alias(libs.plugins.jmh)
     id("com.vanniktech.maven.publish") version "0.34.0"
-    id("org.jetbrains.dokka") version "2.0.0"
     id("org.hildan.github.changelog") version "2.2.0"
     id("ru.vyarus.github-info") version "2.0.0"
 }
@@ -35,7 +34,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
     testImplementation("org.openjdk.jmh:jmh-core:1.37")
     testAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 }
@@ -44,22 +44,12 @@ tasks.test {
     useJUnitPlatform()
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
     withSourcesJar()
     modularity.inferModulePath.set(true)
-}
-
-tasks.named("compileJava", JavaCompile::class.java) {
-    // Capture the value outside the lambda at configuration time
-    val mainOutputPath = sourceSets["main"].output.asPath
-
-    options.compilerArgumentProviders.add(CommandLineArgumentProvider {
-        listOf("--patch-module", "me.zolotov.oniguruma.jni=$mainOutputPath")
-    })
 }
 
 val currentPlatform = currentPlatform()
@@ -157,7 +147,7 @@ configurations {
 
 val javaComponent = components.findByName("java") as AdhocComponentWithVariants
 javaComponent.addVariantsFromConfiguration(configurations.consumable("slim") {
-    // carry the same runtime dependencies (e.g. kotlin-stdlib) as the regular runtime variant
+    // Carry the same runtime dependencies as the regular runtime variant.
     extendsFrom(configurations.implementation.get(), configurations.runtimeOnly.get())
     attributes {
         attribute(PACKAGING_ATTRIBUTE, "slim")
@@ -186,8 +176,8 @@ compileRustBindingsTaskByPlatform.forEach { (platform, task) ->
 }
 
 mavenPublishing {
-    configure(KotlinJvm(
-        javadocJar = JavadocJar.Dokka("dokkaHtml"),
+    configure(JavaLibrary(
+        javadocJar = JavadocJar.Javadoc(),
         sourcesJar = true
     ))
     publishToMavenCentral(automaticRelease = true)
