@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Thread)
 open class OnigurumaBenchmark {
     lateinit var oniguruma: Oniguruma
+    lateinit var pattern: ByteArray
     lateinit var smallText: ByteArray
     lateinit var largeText: ByteArray
     lateinit var invalidPattern: ByteArray
@@ -16,7 +17,8 @@ open class OnigurumaBenchmark {
     @Setup(Level.Trial)
     fun setup() {
         oniguruma = Oniguruma.createFromResources()
-        regexPtr = oniguruma.createRegex("[0-9]+".encodeToByteArray())
+        pattern = "[0-9]+".encodeToByteArray()
+        regexPtr = oniguruma.createRegex(pattern)
         smallText = "🚧🚧🚧 привет, мир 123!".encodeToByteArray()
         largeText = buildString {
             while (length < 64 * 1024) {
@@ -55,6 +57,13 @@ open class OnigurumaBenchmark {
     fun benchmarkCreateStringLarge(): Long {
         val ptr = oniguruma.createString(largeText)
         oniguruma.freeString(ptr)
+        return ptr
+    }
+
+    @Benchmark
+    fun benchmarkCreateRegex(): Long {
+        val ptr = oniguruma.createRegex(pattern)
+        oniguruma.freeRegex(ptr)
         return ptr
     }
 
