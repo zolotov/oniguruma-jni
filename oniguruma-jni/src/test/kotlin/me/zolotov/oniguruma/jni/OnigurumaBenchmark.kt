@@ -1,6 +1,4 @@
-package com.jetbrains.oniguruma
-
-import me.zolotov.oniguruma.Oniguruma
+package me.zolotov.oniguruma.jni
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 

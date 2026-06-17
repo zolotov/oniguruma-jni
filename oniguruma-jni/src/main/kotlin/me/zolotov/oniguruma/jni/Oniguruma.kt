@@ -1,4 +1,4 @@
-package me.zolotov.oniguruma
+package me.zolotov.oniguruma.jni
 
 import java.nio.file.Path
 

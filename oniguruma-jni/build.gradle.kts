@@ -58,7 +58,7 @@ tasks.named("compileJava", JavaCompile::class.java) {
     val mainOutputPath = sourceSets["main"].output.asPath
 
     options.compilerArgumentProviders.add(CommandLineArgumentProvider {
-        listOf("--patch-module", "me.zolotov.oniguruma=$mainOutputPath")
+        listOf("--patch-module", "me.zolotov.oniguruma.jni=$mainOutputPath")
     })
 }
 
