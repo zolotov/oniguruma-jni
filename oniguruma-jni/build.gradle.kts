@@ -185,7 +185,7 @@ mavenPublishing {
     pom {
         name.set(project.name)
         description.set(project.description)
-        url.set("https://github.com/zolotov/oniguruma-jni")
+        url.set("https://github.com/zolotov/oniguruma-bindings")
 
         licenses {
             license {
@@ -205,9 +205,9 @@ mavenPublishing {
         }
 
         scm {
-            url.set("https://github.com/zolotov/oniguruma-jni")
-            connection.set("scm:git:git://github.com/zolotov/oniguruma-jni.git")
-            developerConnection.set("scm:git:ssh://github.com/zolotov/oniguruma-jni.git")
+            url.set("https://github.com/zolotov/oniguruma-bindings")
+            connection.set("scm:git:git://github.com/zolotov/oniguruma-bindings.git")
+            developerConnection.set("scm:git:ssh://github.com/zolotov/oniguruma-bindings.git")
         }
     }
 }
