@@ -1,5 +1,5 @@
-module me.zolotov.oniguruma {
+module me.zolotov.oniguruma.jni {
     requires kotlin.stdlib;
     
-    exports me.zolotov.oniguruma;
+    exports me.zolotov.oniguruma.jni;
 }
