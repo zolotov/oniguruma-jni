@@ -1,27 +1,12 @@
 # Change Log
 
-## [Unreleased]
+## [2.0.0](https://github.com/zolotov/oniguruma-bindings/tree/2.0.0) (2026-06-18)
+[View commits](https://github.com/zolotov/oniguruma-bindings/compare/1.0.3...2.0.0)
 
-**Breaking changes:**
+**Merged pull requests:**
 
-- Move public imports from `me.zolotov.oniguruma.*` to `me.zolotov.oniguruma.jni.*`.
-- Rename the JPMS module from `me.zolotov.oniguruma` to `me.zolotov.oniguruma.jni`.
-- Keep the Maven coordinates at `me.zolotov.oniguruma:oniguruma-jni` while moving the Rust crate to `oniguruma-jni/native`.
-
-**Migration notes:**
-
-- Update imports from `me.zolotov.oniguruma.Oniguruma` to `me.zolotov.oniguruma.jni.Oniguruma`.
-- Update `requires me.zolotov.oniguruma;` to `requires me.zolotov.oniguruma.jni;`.
-
-```java
-module your.module {
-    requires me.zolotov.oniguruma.jni;
-}
-```
-
-**Changed:**
-
-- Rewrite `oniguruma-jni` from Kotlin to Java and simplify the published Gradle build to a Java-first configuration.
+- Rewrite oniguruma\-jni from Kotlin to Java [\#57](https://github.com/zolotov/oniguruma-bindings/pull/57) ([@zolotov](https://github.com/zolotov))
+- Change package [\#56](https://github.com/zolotov/oniguruma-bindings/pull/56) ([@zolotov](https://github.com/zolotov))
 
 ## [1.0.3](https://github.com/zolotov/oniguruma-bindings/tree/1.0.3) (2026-06-11)
 [View commits](https://github.com/zolotov/oniguruma-bindings/compare/1.0.2...1.0.3)
